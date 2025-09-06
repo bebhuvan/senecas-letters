@@ -186,7 +186,7 @@ const structuredData = {
             <span class="item-date">{letter.data.date}</span>
           </div>
           <h3 class="item-title">{letter.data.title}</h3>
-          <p class="item-excerpt">{letter.data.excerpt}</p>
+          <p class="item-excerpt">{letter.data.excerpt.length > 200 ? letter.data.excerpt.substring(0, 200) + '...' : letter.data.excerpt}</p>
         </a>
       ))}
       
