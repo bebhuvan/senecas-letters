@@ -1,6 +1,6 @@
 ---
 number: 66
-title: "On Saving Time"
+title: "On Various Aspects of Virtue"
 date: "Winter, 62-63 CE"
 location: "Campania"
 themes: ["philosophy","wisdom","virtue"]
@@ -9,7 +9,7 @@ featured: false
 excerpt: "I have just seen my former school-mate Claranus for the first time in many years. You need not wait for me to add that he is an old man; but I assure you that I found him hale in spirit and sturdy,..."
 ---
 
-# Letter 66: On Saving Time
+# Letter 66: On Various Aspects of Virtue
 
 I have just seen my former school-mate Claranus for the first time in many years. You need not wait for me to add that he is an old man; but I assure you that I found him hale in spirit and sturdy, although he is wrestling with a frail and feeble body. For Nature acted unfairly when she gave him a poor domicile for so rare a soul; or perhaps it was because she wished to prove to us that an absolutely strong and happy mind can lie hidden under any exterior.
 

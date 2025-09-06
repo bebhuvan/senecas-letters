@@ -1,15 +1,15 @@
 ---
 number: 93
-title: "On Saving Time"
+title: "On the Quality, as Contrasted with the Length, of Life"
 date: "Spring, 63 CE"
 location: "Rome"
-themes: ["philosophy","wisdom","virtue"]
+themes: ["philosophy","wisdom","virtue","death","mortality"]
 readingTime: 6
 featured: false
 excerpt: "While reading the letter in which you were lamenting the death of the philosopher Metronax as if he might have, and indeed ought to have, lived longer, I missed the spirit of fairness which abounds..."
 ---
 
-# Letter 93: On Saving Time
+# Letter 93: On the Quality, as Contrasted with the Length, of Life
 
 While reading the letter in which you were lamenting the death of the philosopher Metronax as if he might have, and indeed ought to have, lived longer, I missed the spirit of fairness which abounds in all your discussions concerning men and things, but is lacking when you approach one single subject,—as is indeed the case with us all. In other words, I have noticed many who deal fairly with their fellow-men, but none who deals fairly with the gods. We rail every day at Fate, saying “Why has A.
 
