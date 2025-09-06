@@ -15,7 +15,4 @@ ENVIRONMENT = "production"
 [build]
 command = "npm run build"
 
-# Route configuration
-[[routes]]
-pattern = "seneca-letters.r-bhuvanesh2007.workers.dev/*"
-zone_name = "r-bhuvanesh2007.workers.dev"
+# Route configuration will be handled automatically by Cloudflare Workers
