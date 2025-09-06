@@ -1,6 +1,6 @@
 name = "seneca-letters"
 main = "worker.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-11-01"
 
 # Assets directory for static files
 [assets]
@@ -10,3 +10,12 @@ binding = "ASSETS"
 # Environment variables
 [vars]
 ENVIRONMENT = "production"
+
+# Performance optimizations
+[build]
+command = "npm run build"
+
+# Route configuration
+[[routes]]
+pattern = "seneca-letters.r-bhuvanesh2007.workers.dev/*"
+zone_name = "r-bhuvanesh2007.workers.dev"

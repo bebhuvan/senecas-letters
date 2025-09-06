@@ -7,8 +7,9 @@ export default defineConfig({
   output: 'static',
   build: {
     format: 'directory',
-    inlineStylesheets: 'never',
-    assets: '_astro'
+    inlineStylesheets: 'auto', // Critical change: inline small CSS files
+    assets: '_astro',
+    assetsPrefix: '/_astro'
   },
   integrations: [
     sitemap()
@@ -22,15 +23,15 @@ export default defineConfig({
   vite: {
     build: {
       cssMinify: true,
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true
+      minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+          assetFileNames: '_astro/[name].[hash][extname]',
+          chunkFileNames: '_astro/[name].[hash].js',
+          entryFileNames: '_astro/[name].[hash].js'
         }
       }
-    },
-    ssr: {
-      noExternal: []
     }
   },
   compressHTML: true
