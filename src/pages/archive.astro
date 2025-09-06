@@ -1,0 +1,527 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navigation from '../components/Navigation.astro';
+import LetterCard from '../components/LetterCard.astro';
+import '../styles/global.css';
+
+const letters = await getCollection('letters');
+const sortedLetters = letters.sort((a, b) => a.data.number - b.data.number);
+
+// Group letters by themes
+const themeGroups = {
+  'Time & Mortality': letters.filter(l => l.data.themes.some(theme => ['time', 'mortality', 'death'].includes(theme))),
+  'Philosophy & Daily Practice': letters.filter(l => l.data.themes.some(theme => ['philosophy', 'wisdom', 'learning'].includes(theme))),
+  'Friendship & Trust': letters.filter(l => l.data.themes.some(theme => ['friendship', 'relationships', 'trust'].includes(theme))),
+  'Virtue & Character': letters.filter(l => l.data.themes.some(theme => ['virtue', 'character', 'courage'].includes(theme))),
+  'Peace of Mind': letters.filter(l => l.data.themes.some(theme => ['tranquility', 'peace', 'serenity', 'calm'].includes(theme))),
+  'Facing Adversity': letters.filter(l => l.data.themes.some(theme => ['adversity', 'suffering', 'hardship', 'resilience'].includes(theme))),
+  'Wealth & Simplicity': letters.filter(l => l.data.themes.some(theme => ['wealth', 'poverty', 'simplicity', 'contentment'].includes(theme))),
+  'Freedom & Independence': letters.filter(l => l.data.themes.some(theme => ['freedom', 'independence', 'self-reliance'].includes(theme))),
+  'Anger & Emotions': letters.filter(l => l.data.themes.some(theme => ['anger', 'emotions', 'passion', 'self-control'].includes(theme)))
+};
+
+// Essential letters
+const essential = letters.filter(l => l.data.featured || [1, 3, 7, 12, 18, 49].includes(l.data.number));
+
+// Group chronologically
+const chronological = {
+  '62 CE — Early Letters': letters.filter(l => l.data.number <= 30),
+  '63 CE — Middle Period': letters.filter(l => l.data.number > 30 && l.data.number <= 80),
+  '64-65 CE — Final Letters': letters.filter(l => l.data.number > 80)
+};
+---
+
+<BaseLayout 
+  title="Archive - Letters to Lucilius"
+  description="Complete archive of all 124 letters from Seneca to Lucilius, organized by theme and chronology."
+>
+  <Navigation />
+  
+  <div class="archive-header">
+    <h1>Complete Archive</h1>
+    <p class="archive-description">
+      All 124 letters to Lucilius, organized by theme and chronology.<br>
+      A comprehensive guide to Stoic philosophy and the art of living well.
+    </p>
+    
+    <div class="archive-stats">
+      <div class="stat-item">
+        <span class="stat-number">124</span>
+        <span class="stat-label">Letters</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">12</span>
+        <span class="stat-label">Themes</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">3</span>
+        <span class="stat-label">Years</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">~400</span>
+        <span class="stat-label">Pages</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="filter-container">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search letters by title, theme, or keyword...">
+    </div>
+    
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-view="themes">By Theme</button>
+      <button class="filter-tab" data-view="chronological">Chronological</button>
+      <button class="filter-tab" data-view="essential">Essential Letters</button>
+      <button class="filter-tab" data-view="all">All Letters</button>
+    </div>
+  </div>
+  
+  <!-- Themes View -->
+  <div id="themesView" class="themes-container">
+    {Object.entries(themeGroups).map(([theme, themeLetters]) => (
+      themeLetters.length > 0 && (
+        <div class="theme-section">
+          <div class="theme-header">
+            <h2 class="theme-title">
+              {theme}
+              <span class="theme-count">{themeLetters.length} letters</span>
+            </h2>
+          </div>
+          <div class="letters-grid">
+            {themeLetters.slice(0, 6).map((letter) => (
+              <LetterCard
+                letterNumber={`Letter ${letter.data.number}`}
+                title={letter.data.title}
+                excerpt={letter.data.excerpt}
+                readingTime={letter.data.readingTime}
+                href={`/letters/${letter.slug}`}
+              />
+            ))}
+          </div>
+        </div>
+      )
+    ))}
+  </div>
+  
+  <!-- Chronological View -->
+  <div id="chronologicalView" class="themes-container chronological-list hidden">
+    {Object.entries(chronological).map(([period, periodLetters]) => (
+      <div class="year-group">
+        <div class="year-label">{period}</div>
+        {periodLetters.map((letter) => (
+          <a href={`/letters/${letter.slug}`} class="letter-list-item">
+            <div class="letter-list-left">
+              <span class="letter-list-number">Letter {letter.data.number}</span>
+              <span class="letter-list-title">{letter.data.title}</span>
+            </div>
+            <span class="letter-list-meta">{letter.data.date.split(',')[0]}</span>
+          </a>
+        ))}
+      </div>
+    ))}
+  </div>
+  
+  <!-- Essential Letters View -->
+  <div id="essentialView" class="themes-container hidden">
+    <div class="theme-section">
+      <div class="theme-header">
+        <h2 class="theme-title">
+          Essential Reading
+          <span class="theme-count">{essential.length} letters</span>
+        </h2>
+        <p class="theme-description">
+          The most important letters for understanding Seneca's philosophy — perfect for newcomers
+        </p>
+      </div>
+      <div class="letters-grid">
+        {essential.map((letter) => (
+          <LetterCard
+            letterNumber={`Letter ${letter.data.number}`}
+            title={letter.data.title}
+            excerpt={letter.data.excerpt}
+            readingTime={letter.data.readingTime}
+            featured={letter.data.featured}
+            href={`/letters/${letter.slug}`}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+  
+  <!-- All Letters View -->
+  <div id="allView" class="themes-container hidden">
+    <div class="theme-section">
+      <div class="theme-header">
+        <h2 class="theme-title">
+          All Letters
+          <span class="theme-count">{sortedLetters.length} letters</span>
+        </h2>
+      </div>
+      <div class="letters-grid-all">
+        {sortedLetters.map((letter) => (
+          <LetterCard
+            letterNumber={`Letter ${letter.data.number}`}
+            title={letter.data.title}
+            excerpt={letter.data.excerpt}
+            readingTime={letter.data.readingTime}
+            href={`/letters/${letter.slug}`}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <div class="footer-content">
+      <div>The complete correspondence of Seneca to Lucilius</div>
+      <div class="footer-links">
+        <a href="/about">About</a>
+        <a href="/">Home</a>
+        <a href="/search">Search</a>
+      </div>
+    </div>
+  </footer>
+  
+  <script is:inline>
+    // View switching
+    function showView(view) {
+      // Hide all views
+      document.querySelectorAll('[id$="View"]').forEach(el => el.classList.add('hidden'));
+      
+      // Remove active class from tabs
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Show selected view and mark tab as active
+      const viewElement = document.getElementById(view + 'View');
+      const tabElement = document.querySelector(`[data-view="${view}"]`);
+      
+      if (viewElement) viewElement.classList.remove('hidden');
+      if (tabElement) tabElement.classList.add('active');
+    }
+    
+    // Add event listeners to filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const view = e.target.dataset.view;
+        showView(view);
+      });
+    });
+    
+    // Search functionality (basic)
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const letterCards = document.querySelectorAll('.letter-card, .letter-list-item');
+        
+        letterCards.forEach(card => {
+          const title = card.querySelector('.letter-title, .letter-list-title')?.textContent?.toLowerCase();
+          const excerpt = card.querySelector('.letter-excerpt')?.textContent?.toLowerCase();
+          
+          if (title?.includes(searchTerm) || excerpt?.includes(searchTerm) || searchTerm === '') {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  /* Archive Header */
+  .archive-header {
+    padding: 8rem 2rem 3rem;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    text-align: center;
+  }
+  
+  .archive-header h1 {
+    font-size: 2.8rem;
+    font-weight: 400;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+  
+  .archive-description {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+    line-height: 1.5;
+  }
+  
+  /* Archive Stats */
+  .archive-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+  }
+  
+  .stat-item {
+    text-align: center;
+  }
+  
+  .stat-number {
+    font-size: 1.8rem;
+    font-family: var(--font-serif);
+    color: var(--royal-blue);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  
+  .stat-label {
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+  }
+  
+  /* Filter Container */
+  .filter-container {
+    padding: 3rem 2rem 2rem;
+    max-width: var(--max-width);
+    margin: 0 auto;
+  }
+  
+  .search-container {
+    max-width: 600px;
+    margin: 0 auto 3rem;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    border: 1px solid var(--border-light);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    outline: none;
+  }
+  
+  .search-input:focus {
+    border-color: var(--royal-blue);
+  }
+  
+  .search-input::placeholder {
+    color: var(--text-tertiary);
+  }
+  
+  .filter-tabs {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    justify-content: center;
+  }
+  
+  .filter-tab {
+    cursor: pointer;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  
+  .filter-tab.active {
+    color: var(--royal-blue);
+    border-bottom-color: var(--royal-blue);
+  }
+  
+  /* Theme Sections */
+  .themes-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+  
+  .theme-section {
+    margin-bottom: 4rem;
+  }
+  
+  .theme-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+  
+  .theme-title {
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+  }
+  
+  .theme-description {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  .theme-count {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    margin-left: 0.5rem;
+  }
+  
+  /* Letters Grid */
+  .letters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .letters-grid-all {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  /* Chronological View */
+  .chronological-list {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .year-group {
+    margin-bottom: 3rem;
+  }
+  
+  .year-label {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--royal-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+  
+  .letter-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .letter-list-item:hover .letter-list-title {
+    color: var(--royal-blue);
+  }
+  
+  .letter-list-left {
+    display: flex;
+    gap: 1.5rem;
+    align-items: baseline;
+  }
+  
+  .letter-list-number {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    min-width: 70px;
+  }
+  
+  .letter-list-title {
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+  }
+  
+  .letter-list-meta {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+  }
+  
+  /* Footer */
+  footer {
+    padding: 4rem 2rem;
+    text-align: center;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border-light);
+    margin-top: 2rem;
+  }
+  
+  .footer-content {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .footer-links {
+    display: flex;
+    gap: 2rem;
+  }
+  
+  .footer-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .footer-links a:hover {
+    color: var(--text-primary);
+  }
+  
+  /* Hidden */
+  .hidden {
+    display: none;
+  }
+  
+  /* Media Queries */
+  @media (max-width: 768px) {
+    .archive-header h1 {
+      font-size: 2.2rem;
+    }
+    
+    .letters-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .archive-stats {
+      gap: 2rem;
+    }
+    
+    .filter-tabs {
+      gap: 1.5rem;
+      justify-content: flex-start;
+    }
+    
+    .footer-content {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+</style>

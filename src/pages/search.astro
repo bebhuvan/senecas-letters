@@ -1,0 +1,458 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navigation from '../components/Navigation.astro';
+import LetterCard from '../components/LetterCard.astro';
+import '../styles/global.css';
+
+const letters = await getCollection('letters');
+---
+
+<BaseLayout 
+  title="Search - Letters to Lucilius"
+  description="Search through all 124 letters from Seneca to find specific topics, themes, and wisdom."
+>
+  <Navigation />
+  
+  <div class="search-page">
+    <div class="search-header">
+      <h1>Search the Letters</h1>
+      <p class="search-description">
+        Find specific wisdom across all 124 letters to Lucilius
+      </p>
+    </div>
+    
+    <div class="search-container">
+      <div class="search-input-container">
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input" 
+          placeholder="Search by title, content, themes..."
+          autocomplete="off"
+        >
+        <button class="search-button">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+            </path>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="search-filters">
+        <button class="filter-chip active" data-filter="all">All</button>
+        <button class="filter-chip" data-filter="time">Time</button>
+        <button class="filter-chip" data-filter="philosophy">Philosophy</button>
+        <button class="filter-chip" data-filter="friendship">Friendship</button>
+        <button class="filter-chip" data-filter="virtue">Virtue</button>
+        <button class="filter-chip" data-filter="death">Death</button>
+        <button class="filter-chip" data-filter="wisdom">Wisdom</button>
+      </div>
+    </div>
+    
+    <div class="search-results">
+      <div id="initialState" class="initial-state">
+        <h2>Popular Searches</h2>
+        <div class="popular-searches">
+          <button class="popular-search" data-search="time">Time & Mortality</button>
+          <button class="popular-search" data-search="friendship">True Friendship</button>
+          <button class="popular-search" data-search="virtue">Virtue & Character</button>
+          <button class="popular-search" data-search="philosophy">Philosophy</button>
+          <button class="popular-search" data-search="wisdom">Practical Wisdom</button>
+          <button class="popular-search" data-search="death">Death & Dying</button>
+        </div>
+        
+        <div class="featured-letters">
+          <h3>Start with these essential letters:</h3>
+          <div class="letters-grid">
+            {letters.filter(l => l.data.featured).slice(0, 3).map((letter) => (
+              <LetterCard
+                letterNumber={`Letter ${letter.data.number}`}
+                title={letter.data.title}
+                excerpt={letter.data.excerpt}
+                readingTime={letter.data.readingTime}
+                href={`/letters/${letter.slug}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <div id="searchResults" class="search-results-container hidden">
+        <div class="results-header">
+          <span id="resultsCount">0 results</span>
+          <button id="clearSearch" class="clear-search">Clear search</button>
+        </div>
+        <div id="resultsContainer" class="letters-grid"></div>
+      </div>
+      
+      <div id="noResults" class="no-results hidden">
+        <h3>No letters found</h3>
+        <p>Try adjusting your search terms or browse by theme instead.</p>
+        <a href="/archive" class="btn btn-primary">Browse Archive</a>
+      </div>
+    </div>
+  </div>
+  
+  <script define:vars={{ letters }}>
+    const searchInput = document.getElementById('searchInput');
+    const initialState = document.getElementById('initialState');
+    const searchResults = document.getElementById('searchResults');
+    const noResults = document.getElementById('noResults');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const resultsCount = document.getElementById('resultsCount');
+    const clearSearch = document.getElementById('clearSearch');
+    
+    let currentFilter = 'all';
+    
+    // Filter chips
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.dataset.filter;
+        if (searchInput.value) {
+          performSearch(searchInput.value);
+        }
+      });
+    });
+    
+    // Popular searches
+    document.querySelectorAll('.popular-search').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const searchTerm = e.target.dataset.search;
+        searchInput.value = searchTerm;
+        performSearch(searchTerm);
+      });
+    });
+    
+    // Search input
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.trim();
+      if (searchTerm.length > 0) {
+        performSearch(searchTerm);
+      } else {
+        showInitialState();
+      }
+    });
+    
+    // Clear search
+    clearSearch.addEventListener('click', () => {
+      searchInput.value = '';
+      showInitialState();
+    });
+    
+    function performSearch(searchTerm) {
+      const filteredLetters = letters.filter(letter => {
+        const matchesSearch = 
+          letter.data.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          letter.data.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          letter.data.themes.some(theme => theme.toLowerCase().includes(searchTerm.toLowerCase()));
+        
+        const matchesFilter = currentFilter === 'all' || 
+          letter.data.themes.some(theme => theme.toLowerCase().includes(currentFilter.toLowerCase()));
+        
+        return matchesSearch && matchesFilter;
+      });
+      
+      displayResults(filteredLetters, searchTerm);
+    }
+    
+    function displayResults(results, searchTerm) {
+      hideAllStates();
+      
+      if (results.length === 0) {
+        noResults.classList.remove('hidden');
+        return;
+      }
+      
+      resultsCount.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} for "${searchTerm}"`;
+      
+      resultsContainer.innerHTML = results.map(letter => `
+        <a href="/letters/${letter.slug}" class="letter-card">
+          <div class="letter-number">Letter ${letter.data.number}</div>
+          <h3 class="letter-title">${letter.data.title}</h3>
+          <p class="letter-excerpt">${letter.data.excerpt}</p>
+          <div class="letter-meta-info">
+            <span>${letter.data.date}</span>
+            <span>${letter.data.readingTime} min read</span>
+          </div>
+        </a>
+      `).join('');
+      
+      searchResults.classList.remove('hidden');
+    }
+    
+    function showInitialState() {
+      hideAllStates();
+      initialState.classList.remove('hidden');
+    }
+    
+    function hideAllStates() {
+      initialState.classList.add('hidden');
+      searchResults.classList.add('hidden');
+      noResults.classList.add('hidden');
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  .search-page {
+    padding: 8rem 2rem 4rem;
+    min-height: 100vh;
+  }
+  
+  .search-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .search-header h1 {
+    font-size: var(--text-4xl);
+    font-weight: 300;
+    margin-bottom: 1rem;
+  }
+  
+  .search-description {
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+  
+  .search-container {
+    max-width: 600px;
+    margin: 0 auto 4rem;
+  }
+  
+  .search-input-container {
+    position: relative;
+    margin-bottom: 2rem;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 1rem 3rem 1rem 1.5rem;
+    font-size: var(--text-lg);
+    border: 2px solid var(--border-light);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  
+  .search-input:focus {
+    border-color: var(--royal-blue);
+  }
+  
+  .search-button {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .search-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .filter-chip {
+    padding: 0.5rem 1rem;
+    font-size: var(--text-sm);
+    background: var(--bg-soft);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .filter-chip:hover,
+  .filter-chip.active {
+    background: var(--royal-blue);
+    color: white;
+    border-color: var(--royal-blue);
+  }
+  
+  .search-results {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    min-height: 500px;
+  }
+  
+  .initial-state {
+    min-height: 500px;
+  }
+
+  .initial-state h2 {
+    font-size: var(--text-2xl);
+    font-weight: 400;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .popular-searches {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 4rem;
+  }
+  
+  .popular-search {
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: var(--text-sm);
+  }
+  
+  .popular-search:hover {
+    border-color: var(--royal-blue);
+    color: var(--royal-blue);
+  }
+  
+  .featured-letters h3 {
+    font-size: var(--text-xl);
+    font-weight: 400;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+  }
+  
+  .letters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+  
+  .search-results-container {
+    min-height: 500px;
+  }
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+  
+  .clear-search {
+    background: none;
+    border: none;
+    color: var(--royal-blue);
+    cursor: pointer;
+    font-size: var(--text-sm);
+  }
+  
+  .no-results {
+    text-align: center;
+    padding: 4rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+  }
+  
+  .no-results h3 {
+    font-size: var(--text-2xl);
+    font-weight: 300;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+  }
+  
+  .no-results p {
+    font-size: var(--text-md);
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+    max-width: 400px;
+    line-height: var(--leading-relaxed);
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  /* Search Results Letter Cards */
+  :global(.letter-card) {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  
+  :global(.letter-card:hover) {
+    border-color: var(--royal-blue);
+    transform: translateY(-2px);
+  }
+  
+  :global(.letter-card .letter-number) {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--royal-blue);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    margin-bottom: 1rem;
+  }
+  
+  :global(.letter-card .letter-title) {
+    font-size: var(--text-lg);
+    font-weight: 400;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    line-height: var(--leading-tight);
+  }
+  
+  :global(.letter-card .letter-excerpt) {
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    color: var(--text-secondary);
+    margin-bottom: auto;
+    flex-grow: 1;
+  }
+  
+  :global(.letter-card .letter-meta-info) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+  }
+  
+  @media (max-width: 768px) {
+    .popular-searches {
+      justify-content: center;
+    }
+    
+    .letters-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .letter-card .letter-meta-info {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+  }
+</style>

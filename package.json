@@ -1,0 +1,28 @@
+{
+  "name": "seneca-letters",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check && tsc --noEmit",
+    "format": "prettier --write .",
+    "clean": "rm -rf dist .astro node_modules/.cache",
+    "build:production": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/sitemap": "^3.2.1",
+    "astro": "^4.16.16"
+  },
+  "devDependencies": {
+    "@astrojs/cloudflare": "^11.1.0",
+    "@types/node": "^20.11.5",
+    "prettier": "^3.2.4",
+    "prettier-plugin-astro": "^0.13.0",
+    "typescript": "^5.3.3"
+  }
+}

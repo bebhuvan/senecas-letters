@@ -1,0 +1,561 @@
+---
+import { type CollectionEntry, getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navigation from '../../components/Navigation.astro';
+import '../../styles/global.css';
+
+export async function getStaticPaths() {
+  const letters = await getCollection('letters');
+  return letters.map((letter) => ({
+    params: { slug: letter.slug },
+    props: { letter }
+  }));
+}
+
+type Props = {
+  letter: CollectionEntry<'letters'>;
+};
+
+const { letter } = Astro.props;
+const { Content } = await letter.render();
+
+// Get all letters to find prev/next
+const allLetters = await getCollection('letters');
+const sortedLetters = allLetters.sort((a, b) => a.data.number - b.data.number);
+const currentIndex = sortedLetters.findIndex(l => l.slug === letter.slug);
+const prevLetter = currentIndex > 0 ? sortedLetters[currentIndex - 1] : null;
+const nextLetter = currentIndex < sortedLetters.length - 1 ? sortedLetters[currentIndex + 1] : null;
+---
+
+<BaseLayout 
+  title={`${letter.data.title} - Seneca`}
+  description={letter.data.excerpt}
+>
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  
+  <!-- Header -->
+  <header class="article-header" id="header">
+    <div class="header-content">
+      <div class="nav-left">
+        <a href="/archive" class="back-button">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Archive
+        </a>
+        <span class="letter-nav-indicator">Letter {letter.data.number} of 124</span>
+      </div>
+      
+      <div class="header-actions">
+        <div class="reading-controls">
+          <select class="font-selector" onchange="changeFont(this.value)">
+            <option value="serif">Newsreader</option>
+            <option value="georgia">Georgia</option>
+            <option value="sans">Sans</option>
+            <option value="system">System</option>
+            <option value="mono">Mono</option>
+          </select>
+          <div class="font-size-control">
+            <button class="font-size-btn" onclick="changeFontSize('decrease')">A-</button>
+            <button class="font-size-btn" onclick="changeFontSize('reset')">A</button>
+            <button class="font-size-btn" onclick="changeFontSize('increase')">A+</button>
+          </div>
+          <span class="reading-time">{letter.data.readingTime} min</span>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+            </path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Article -->
+  <article>
+    <div class="letter-title-section">
+      <div class="letter-label">Letter {letter.data.number}</div>
+      <h1 class="letter-title">{letter.data.title}</h1>
+      <div class="letter-meta">
+        <span class="meta-item">To Lucilius Junior</span>
+        <span class="meta-item">{letter.data.location || 'Rome'}</span>
+        <span class="meta-item">{letter.data.date}</span>
+      </div>
+    </div>
+    
+    <div class="letter-content">
+      <Content />
+    </div>
+    
+    <!-- Navigation -->
+    {(prevLetter || nextLetter) && (
+      <nav class="letter-navigation">
+        {prevLetter && (
+          <a href={`/letters/${prevLetter.slug}`} class="nav-card">
+            <div class="nav-direction">Previous</div>
+            <div class="nav-title">{prevLetter.data.title}</div>
+            <div class="nav-number">Letter {prevLetter.data.number}</div>
+          </a>
+        )}
+        {nextLetter && (
+          <a href={`/letters/${nextLetter.slug}`} class="nav-card next">
+            <div class="nav-direction">Next</div>
+            <div class="nav-title">{nextLetter.data.title}</div>
+            <div class="nav-number">Letter {nextLetter.data.number}</div>
+          </a>
+        )}
+      </nav>
+    )}
+  </article>
+  
+  <script is:inline>
+    // Font selection
+    function changeFont(fontType) {
+      const body = document.body;
+      // Remove existing font classes
+      body.classList.remove('font-serif', 'font-georgia', 'font-sans', 'font-system', 'font-mono');
+      
+      body.classList.add(`font-${fontType}`);
+      localStorage.setItem('fontType', fontType);
+    }
+    
+    // Reading mode
+    function changeFontSize(action) {
+      const body = document.body;
+      // Remove existing reading mode classes
+      body.classList.remove('reading-mode-compact', 'reading-mode-comfort', 'reading-mode-spacious');
+      
+      if (action === 'decrease') {
+        body.classList.add('reading-mode-compact');
+        localStorage.setItem('readingMode', 'compact');
+      } else if (action === 'increase') {
+        body.classList.add('reading-mode-spacious');
+        localStorage.setItem('readingMode', 'spacious');
+      } else {
+        body.classList.add('reading-mode-comfort');
+        localStorage.setItem('readingMode', 'comfort');
+      }
+    }
+    
+    // Load saved preferences
+    const savedMode = localStorage.getItem('readingMode') || 'comfort';
+    const savedFont = localStorage.getItem('fontType') || 'serif';
+    
+    // Apply saved reading mode
+    document.body.classList.remove('reading-mode-compact', 'reading-mode-comfort', 'reading-mode-spacious');
+    document.body.classList.add(`reading-mode-${savedMode}`);
+    
+    // Apply saved font
+    document.body.classList.add(`font-${savedFont}`);
+    
+    // Set the select dropdown to match
+    window.addEventListener('DOMContentLoaded', () => {
+      const fontSelector = document.querySelector('.font-selector');
+      if (fontSelector) {
+        fontSelector.value = savedFont;
+      }
+    });
+    
+    // Progress bar
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      const progressBar = document.getElementById('progressBar');
+      if (progressBar) {
+        progressBar.style.width = scrolled + '%';
+      }
+    });
+    
+    // Hide header on scroll down, show on scroll up
+    let lastScrollTop = 0;
+    window.addEventListener('scroll', function() {
+      const header = document.getElementById('header');
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      if (scrollTop > lastScrollTop && scrollTop > 100) {
+        header?.classList.add('hidden');
+      } else {
+        header?.classList.remove('hidden');
+      }
+      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    }, false);
+  </script>
+</BaseLayout>
+
+<style>
+  /* Progress Bar */
+  .progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-light);
+    z-index: 200;
+  }
+  
+  .progress-bar {
+    height: 100%;
+    background: var(--royal-blue);
+    width: 0%;
+    transition: width 0.1s ease;
+  }
+  
+  /* Article Header */
+  .article-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem 2rem;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid var(--border-light);
+    z-index: 100;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  
+  :global([data-theme="dark"]) .article-header {
+    background: rgba(10, 10, 10, 0.95) !important;
+    border-bottom: 1px solid var(--border-light);
+  }
+  
+  .article-header.hidden {
+    transform: translateY(-100%);
+  }
+  
+  .header-content {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+  
+  .back-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .back-button:hover {
+    color: var(--royal-blue);
+  }
+  
+  .letter-nav-indicator {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    letter-spacing: 0.05em;
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .reading-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .font-selector {
+    padding: 0.25rem 0.75rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    background: var(--bg-soft);
+    border: none;
+    border-radius: 20px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    outline: none;
+  }
+  
+  .font-selector:hover {
+    color: var(--royal-blue);
+  }
+  
+  .font-selector:focus {
+    outline: none;
+  }
+  
+  .font-size-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--bg-soft);
+    border-radius: 20px;
+  }
+  
+  .font-size-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: color 0.2s ease;
+  }
+  
+  .font-size-btn:hover {
+    color: var(--royal-blue);
+  }
+  
+  .reading-time {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+  
+  .theme-toggle {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+    border: none;
+    background: none;
+    padding: 0;
+  }
+  
+  .theme-toggle:hover {
+    color: var(--royal-blue);
+  }
+  
+  .theme-toggle svg {
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* Article Content */
+  article {
+    padding-top: 8rem;
+    padding-bottom: 6rem;
+    background: var(--bg-soft);
+    min-height: 100vh;
+  }
+  
+  /* Letter Title Section */
+  .letter-title-section {
+    max-width: var(--content-width);
+    margin: 0 auto 4rem;
+    padding: 0 2rem;
+    text-align: center;
+  }
+  
+  .letter-label {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--royal-blue);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  
+  .letter-title {
+    font-size: var(--text-5xl);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+  }
+  
+  .letter-meta {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-light);
+  }
+  
+  /* Letter Body */
+  .letter-content {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: 0 3rem;
+  }
+  
+  /* Content Styles */
+  .letter-content :global(h1),
+  .letter-content :global(h2),
+  .letter-content :global(h3) {
+    font-size: var(--text-2xl);
+    font-weight: 400;
+    margin: 2rem 0 1.5rem;
+    color: var(--text-primary);
+  }
+  
+  .letter-content :global(p) {
+    margin-bottom: 2.25rem;
+    font-size: 1.3rem;
+    line-height: 1.7;
+    letter-spacing: 0;
+    font-weight: 400;
+    color: var(--text-primary);
+    max-width: 75ch;
+  }
+  
+  .letter-content :global(blockquote) {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: var(--bg-primary);
+    border-left: 3px solid var(--royal-blue);
+    font-style: italic;
+  }
+  
+  /* Letter Navigation */
+  .letter-navigation {
+    max-width: var(--content-width);
+    margin: 5rem auto 0;
+    padding: 3rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    border-top: 1px solid var(--border-light);
+  }
+  
+  .nav-card {
+    text-decoration: none;
+    padding: 1.5rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    transition: border-color 0.2s ease;
+    color: inherit;
+  }
+  
+  .nav-card:hover {
+    border-color: var(--royal-blue);
+  }
+  
+  .nav-card.next {
+    text-align: right;
+  }
+  
+  .nav-direction {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+  
+  .nav-title {
+    font-size: var(--text-lg);
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+  
+  .nav-number {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--royal-blue);
+  }
+  
+  /* Font Family Classes */
+  :global(.font-serif) .letter-content :global(p) {
+    font-family: var(--font-serif);
+  }
+  
+  :global(.font-georgia) .letter-content :global(p) {
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+  
+  :global(.font-sans) .letter-content :global(p) {
+    font-family: var(--font-sans);
+  }
+  
+  :global(.font-system) .letter-content :global(p) {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  }
+  
+  :global(.font-mono) .letter-content :global(p) {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+    font-size: 0.95em;
+  }
+  
+  /* Reading Mode Classes */
+  :global(.reading-mode-compact) .letter-content :global(p) {
+    font-size: 1.2rem;
+    line-height: 1.65;
+    margin-bottom: 1.875rem;
+  }
+  
+  :global(.reading-mode-comfort) .letter-content :global(p) {
+    font-size: 1.3rem;
+    line-height: 1.7;
+    margin-bottom: 2.25rem;
+  }
+  
+  :global(.reading-mode-spacious) .letter-content :global(p) {
+    font-size: 1.45rem;
+    line-height: 1.8;
+    margin-bottom: 2.5rem;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .letter-title {
+      font-size: var(--text-4xl);
+    }
+    
+    .letter-navigation {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    
+    .font-size-control {
+      display: none;
+    }
+    
+    .letter-meta {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .letter-title-section {
+      padding: 0 1.5rem;
+    }
+    
+    .letter-content {
+      padding: 0 1.5rem;
+    }
+  }
+</style>
