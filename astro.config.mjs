@@ -7,7 +7,7 @@ export default defineConfig({
   output: 'static',
   build: {
     format: 'directory',
-    inlineStylesheets: 'auto',
+    inlineStylesheets: 'never',
     assets: '_astro'
   },
   integrations: [
