@@ -1,6 +1,6 @@
 ---
 number: 5
-title: "The Philosopher’S Mean"
+title: "On the Philosopher's Mean"
 date: "Summer, 62 CE"
 location: "Campania"
 themes: ["philosophy","simplicity","moderation"]
@@ -9,7 +9,7 @@ featured: false
 excerpt: "I commend you and rejoice in the fact that you are persistent in your studies, and that, putting all else aside, you make it each day your endeavour to become a better man. I do not merely exhort you..."
 ---
 
-# Letter 5: The Philosopher’S Mean
+# Letter 5: On the Philosopher's Mean
 
 I commend you and rejoice in the fact that you are persistent in your studies, and that, putting all else aside, you make it each day your endeavour to become a better man. I do not merely exhort you to keep at it; I actually beg you to do so. I warn you, however, not to act after the fashion of those who desire to be conspicuous rather than to improve, by doing things which will rouse comment as regards your dress or general way of living.
 

@@ -1,15 +1,15 @@
 ---
 number: 87
-title: "Some Arguments In Of The Simple Life"
+title: "Some Arguments in Favour of the Simple Life"
 date: "Spring, 63 CE"
 location: "Rome"
-themes: ["philosophy","wisdom","virtue"]
+themes: ["philosophy","wisdom","virtue","simplicity"]
 readingTime: 16
 featured: false
-excerpt: "“I was shipwrecked before I got aboard.” I shall not add how that happened, lest you may reckon this also as another of the Stoic paradoxes; and yet I shall, whenever you are willing to listen, nay,..."
+excerpt: "\"I was shipwrecked before I got aboard.\" I shall not add how that happened, lest you may reckon this also as another of the Stoic paradoxes; and yet I shall, whenever you are willing to listen, nay,..."
 ---
 
-# Letter 87: Some Arguments In Of The Simple Life
+# Letter 87: Some Arguments in Favour of the Simple Life
 
 “I was shipwrecked before I got aboard.” I shall not add how that happened, lest you may reckon this also as another of the Stoic paradoxes; and yet I shall, whenever you are willing to listen, nay, even though you be unwilling, prove to you that these words are by no means untrue, nor so surprising as one at first sight would think. Meantime, the journey showed me this: how much we possess that is superfluous; and how easily we can make up our minds to do away with things whose loss, whenever it is necessary to part with them, we do not feel. My friend Maximus and I have been spending a most happy period of two days, taking with us very few slaves—one carriage-load—and no paraphernalia except what we wore on our persons.
 
