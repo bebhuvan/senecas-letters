@@ -7,9 +7,8 @@ export default defineConfig({
   output: 'static',
   build: {
     format: 'directory',
-    inlineStylesheets: 'auto', // Critical change: inline small CSS files
-    assets: '_astro',
-    assetsPrefix: '/_astro'
+    inlineStylesheets: 'always', // Force inline all CSS
+    assets: '_astro'
   },
   integrations: [
     sitemap()
