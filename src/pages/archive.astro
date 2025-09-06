@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Navigation from '../components/Navigation.astro';
 import LetterCard from '../components/LetterCard.astro';
+import { createSlug } from '../utils/slugs';
 import '../styles/global.css';
 
 const letters = await getCollection('letters');
@@ -96,7 +97,7 @@ const chronological = {
                 title={letter.data.title}
                 excerpt={letter.data.excerpt}
                 readingTime={letter.data.readingTime}
-                href={`/letters/${letter.slug}`}
+                href={`/letters/${createSlug(letter.data.title, letter.data.number)}`}
               />
             ))}
           </div>
@@ -111,7 +112,7 @@ const chronological = {
       <div class="year-group">
         <div class="year-label">{period}</div>
         {periodLetters.map((letter) => (
-          <a href={`/letters/${letter.slug}`} class="letter-list-item">
+          <a href={`/letters/${createSlug(letter.data.title, letter.data.number)}`} class="letter-list-item">
             <div class="letter-list-left">
               <span class="letter-list-number">Letter {letter.data.number}</span>
               <span class="letter-list-title">{letter.data.title}</span>
@@ -143,7 +144,7 @@ const chronological = {
             excerpt={letter.data.excerpt}
             readingTime={letter.data.readingTime}
             featured={letter.data.featured}
-            href={`/letters/${letter.slug}`}
+            href={`/letters/${createSlug(letter.data.title, letter.data.number)}`}
           />
         ))}
       </div>
@@ -166,7 +167,7 @@ const chronological = {
             title={letter.data.title}
             excerpt={letter.data.excerpt}
             readingTime={letter.data.readingTime}
-            href={`/letters/${letter.slug}`}
+            href={`/letters/${createSlug(letter.data.title, letter.data.number)}`}
           />
         ))}
       </div>

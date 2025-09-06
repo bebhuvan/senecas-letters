@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Navigation from '../components/Navigation.astro';
 import LetterCard from '../components/LetterCard.astro';
+import { createSlug } from '../utils/slugs';
 import '../styles/global.css';
 
 const letters = await getCollection('letters');
@@ -136,7 +137,7 @@ const structuredData = {
       <!-- Left Column: 2 Hero Letters -->
       <div class="hero-letters">
         {featured.slice(0, 2).map((letter, index) => (
-          <a href={`/letters/${letter.slug}`} class="hero-letter-card">
+          <a href={`/letters/${createSlug(letter.data.title, letter.data.number)}`} class="hero-letter-card">
             {index === 0 && (
               <div class="letter-badge">Most Read</div>
             )}
@@ -154,7 +155,7 @@ const structuredData = {
       <!-- Right Column: 4 Supporting Letters -->
       <div class="supporting-letters">
         {featured.slice(2, 6).map((letter) => (
-          <a href={`/letters/${letter.slug}`} class="supporting-letter-card">
+          <a href={`/letters/${createSlug(letter.data.title, letter.data.number)}`} class="supporting-letter-card">
             <div class="supporting-letter-number">Letter {letter.data.number}</div>
             <h4 class="supporting-letter-title">{letter.data.title}</h4>
             <p class="supporting-letter-excerpt">{letter.data.excerpt.substring(0, 140)}...</p>
@@ -180,7 +181,7 @@ const structuredData = {
     
     <div class="letters-list content-container">
       {recent.map((letter) => (
-        <a href={`/letters/${letter.slug}`} class="letter-item">
+        <a href={`/letters/${createSlug(letter.data.title, letter.data.number)}`} class="letter-item">
           <div class="item-header">
             <span class="item-number">Letter {letter.data.number}</span>
             <span class="item-date">{letter.data.date}</span>

@@ -56,13 +56,13 @@ const structuredData = {
 // Get all letters to find prev/next
 const allLetters = await getCollection('letters');
 const sortedLetters = allLetters.sort((a, b) => a.data.number - b.data.number);
-const currentIndex = sortedLetters.findIndex(l => l.slug === letter.slug);
+const currentIndex = sortedLetters.findIndex(l => l.data.number === letter.data.number);
 const prevLetter = currentIndex > 0 ? sortedLetters[currentIndex - 1] : null;
 const nextLetter = currentIndex < sortedLetters.length - 1 ? sortedLetters[currentIndex + 1] : null;
 
 // Find related letters by shared themes for internal linking
 const relatedLetters = allLetters
-  .filter(l => l.slug !== letter.slug && 
+  .filter(l => l.data.number !== letter.data.number && 
          l.data.themes.some(theme => letter.data.themes.includes(theme)))
   .slice(0, 3);
 ---
