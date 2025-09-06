@@ -14,6 +14,7 @@ const searchData = letters.map(letter => ({
     title: letter.data.title,
     excerpt: letter.data.excerpt,
     themes: letter.data.themes,
+    keywords: letter.data.keywords || [],
     readingTime: letter.data.readingTime,
     date: letter.data.date,
     featured: letter.data.featured
@@ -31,7 +32,7 @@ const searchData = letters.map(letter => ({
     <div class="search-header">
       <h1>Search the Letters</h1>
       <p class="search-description">
-        Find specific wisdom across all 124 letters to Lucilius
+        Search titles, excerpts, themes, and key concepts across all 124 letters
       </p>
     </div>
     
@@ -119,6 +120,16 @@ const searchData = letters.map(letter => ({
     
     let currentFilter = 'all';
     
+    // Create slug function for client-side use
+    function createSlug(title, letterNumber) {
+      const baseSlug = title.toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      return letterNumber ? `letter-${letterNumber}-${baseSlug}` : baseSlug;
+    }
+    
     // Filter chips
     document.querySelectorAll('.filter-chip').forEach(chip => {
       chip.addEventListener('click', (e) => {
@@ -158,10 +169,12 @@ const searchData = letters.map(letter => ({
     
     function performSearch(searchTerm) {
       const filteredLetters = letters.filter(letter => {
+        const searchLower = searchTerm.toLowerCase();
         const matchesSearch = 
-          letter.data.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          letter.data.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          letter.data.themes.some(theme => theme.toLowerCase().includes(searchTerm.toLowerCase()));
+          letter.data.title.toLowerCase().includes(searchLower) ||
+          letter.data.excerpt.toLowerCase().includes(searchLower) ||
+          letter.data.themes.some(theme => theme.toLowerCase().includes(searchLower)) ||
+          (letter.data.keywords && letter.data.keywords.some(keyword => keyword.toLowerCase().includes(searchLower)));
         
         const matchesFilter = currentFilter === 'all' || 
           letter.data.themes.some(theme => theme.toLowerCase().includes(currentFilter.toLowerCase()));
@@ -285,6 +298,8 @@ const searchData = letters.map(letter => ({
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
+    border-radius: 20px;
+    font-family: var(--font-sans);
   }
   
   .filter-chip:hover,

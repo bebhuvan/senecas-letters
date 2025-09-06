@@ -6,7 +6,8 @@ location: "Campania"
 themes: ["crowds","solitude","influence"]
 readingTime: 5
 featured: true
-excerpt: "Do you ask me what you should regard as especially to be avoided? I say, crowds; for as yet you cannot trust yourself to them with safety. I shall admit my own weakness, at any rate; for I never..."
+excerpt: "Do you ask me what you should regard as especially to be avoided? I say, crowds; for as yet you cannot trust yourself to them with safety. I never bring back home the same character that I took abroad with me. Something of that which I have forced to be calm within me is disturbed; some of the foes that I have routed return again. To consort with the crowd is harmful; there is no person who does not make some vice attractive to us, or stamp it upon us, or taint us unconsciously therewith. The greater the mob with which we mingle, the greater the danger."
+keywords: ["avoid crowds", "trust yourself", "character changed", "calm disturbed", "foes return", "vice attractive", "taint unconsciously", "greater danger", "lounging at games", "pure murder", "bad example", "withdraw into yourself", "associate with better", "imitate or loathe", "moral strength", "world assaults"]
 ---
 
 # Letter 7: On Crowds

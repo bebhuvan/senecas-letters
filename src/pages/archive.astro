@@ -135,14 +135,13 @@ const chronological = {
           The most important letters for understanding Seneca's philosophy — perfect for newcomers
         </p>
       </div>
-      <div class="letters-grid">
+      <div class="letters-grid-all">
         {essential.map((letter) => (
           <LetterCard
             letterNumber={`Letter ${letter.data.number}`}
             title={letter.data.title}
             excerpt={letter.data.excerpt}
             readingTime={letter.data.readingTime}
-            featured={letter.data.featured}
             href={`/letters/${createSlug(letter.data.title, letter.data.number)}`}
           />
         ))}

@@ -1,0 +1,70 @@
+/* Modern CSS Reset */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 19px;
+  line-height: var(--leading-normal);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+/* Smooth theme transitions */
+*,
+*::before,
+*::after {
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease, 
+              color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+body {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  min-height: 100vh;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+::selection {
+  background: var(--soft-blue);
+  color: var(--text-primary);
+}

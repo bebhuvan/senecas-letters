@@ -1,12 +1,13 @@
 ---
 number: 77
-title: "On Taking One’S Own Life"
+title: "On Taking One'S Own Life"
 date: "Spring, 63 CE"
 location: "Rome"
-themes: ["philosophy","wisdom","virtue"]
+themes: ["philosophy","wisdom","virtue","death","courage"]
 readingTime: 8
-featured: false
-excerpt: "Suddenly there came into our view to-day the “Alexandrian” ships,—I mean those which are usually sent ahead to announce the coming of the fleet; they are called “mail-boats.” The Campanians are glad..."
+featured: true
+excerpt: "It is not an important matter to live; all your slaves live, and so do all animals; but it is important to die honourably, sensibly, bravely. Life is not incomplete if it is honourable. At whatever point you leave off living, provided you leave off nobly, your life is a whole. Often, however, one must leave off bravely, and our reasons therefore need not be momentous; for neither are the reasons momentous which hold us here."
+keywords: ["die honourably", "die sensibly", "die bravely", "life is whole", "leave off nobly", "incomplete expedition", "honourable life", "leave off bravely", "not momentous", "daily round", "food sleep lust", "Stoic friend", "courage and vigour", "torment yourself", "matter of importance"]
 ---
 
 # Letter 77: On Taking One’S Own Life

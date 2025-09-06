@@ -6,7 +6,8 @@ location: "Campania"
 themes: ["time","mortality","philosophy"]
 readingTime: 2
 featured: true
-excerpt: "The most disgraceful kind of loss, however, is that due to carelessness. Furthermore, if you will pay close heed to the problem, you will find that the largest portion of our life passes while we are..."
+excerpt: "The most disgraceful kind of loss, however, is that due to carelessness. Furthermore, if you will pay close heed to the problem, you will find that the largest portion of our life passes while we are doing ill, a goodly share while we are doing nothing, and the whole while we are doing that which is not to the purpose. What man can you show me who places any value on his time, who reckons the worth of each day, who understands that he is dying daily? For we are mistaken when we look forward to death; the major portion of death has already passed. Whatever years lie behind us are in death's hands."
+keywords: ["dying daily", "value time", "carelessness", "postponing life", "death has passed", "hold every hour", "grasp today", "life speeds by", "time is ours", "fleeting slippery", "precious commodity", "grateful recipient", "waste nothing", "too late to spare", "dregs of the cask"]
 ---
 
 # Letter 1: On Saving Time

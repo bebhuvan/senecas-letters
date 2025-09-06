@@ -92,8 +92,8 @@ const relatedLetters = allLetters
       <div class="header-actions">
         <div class="reading-controls">
           <select class="font-selector" onchange="changeFont(this.value)">
-            <option value="serif">Georgia</option>
-            <option value="georgia">Georgia Pro</option>
+            <option value="serif">Newsreader</option>
+            <option value="georgia">Georgia</option>
             <option value="sans">Sans</option>
             <option value="system">System</option>
             <option value="mono">Mono</option>
@@ -103,7 +103,6 @@ const relatedLetters = allLetters
             <button class="font-size-btn" onclick="changeFontSize('reset')">A</button>
             <button class="font-size-btn" onclick="changeFontSize('increase')">A+</button>
           </div>
-          <span class="reading-time">{letter.data.readingTime} min</span>
         </div>
         <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,10 +146,14 @@ const relatedLetters = allLetters
           <div class="related-grid">
             {relatedLetters.map(related => (
               <a href={`/letters/${createSlug(related.data.title, related.data.number)}`} class="related-card">
-                <div class="related-number">Letter {related.data.number}</div>
-                <div class="related-title">{related.data.title}</div>
-                <div class="related-themes">
-                  {related.data.themes.filter(t => letter.data.themes.includes(t)).join(', ')}
+                <div class="related-meta">
+                  <div class="related-number">Letter {related.data.number}</div>
+                </div>
+                <div class="related-content">
+                  <div class="related-title">{related.data.title}</div>
+                  <div class="related-themes">
+                    {related.data.themes.filter(t => letter.data.themes.includes(t)).join(', ')}
+                  </div>
                 </div>
               </a>
             ))}
