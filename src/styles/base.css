@@ -138,6 +138,12 @@ input:focus, textarea:focus, select:focus {
   display: none !important; 
 }
 
+/* Override for article header to use transform instead of display:none for smoother UX */
+.article-header.hidden {
+  display: block !important;
+  transform: translateY(-100%);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

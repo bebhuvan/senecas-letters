@@ -7,7 +7,7 @@ export default defineConfig({
   output: 'static',
   build: {
     format: 'directory',
-    inlineStylesheets: 'always', // Force inline all CSS
+    inlineStylesheets: 'auto', // Enable CSS caching
     assets: '_astro'
   },
   integrations: [

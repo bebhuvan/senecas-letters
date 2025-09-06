@@ -7,17 +7,15 @@ import { createSlug } from '../utils/slugs';
 
 const letters = await getCollection('letters');
 
-// Create a search-optimized version with only necessary data
+// Create a minimal search-optimized version
 const searchData = letters.map(letter => ({
   data: {
     number: letter.data.number,
     title: letter.data.title,
-    excerpt: letter.data.excerpt,
+    excerpt: letter.data.excerpt.substring(0, 200) + '...', // Truncate excerpts
     themes: letter.data.themes,
-    keywords: letter.data.keywords || [],
     readingTime: letter.data.readingTime,
-    date: letter.data.date,
-    featured: letter.data.featured
+    date: letter.data.date
   }
 }));
 ---
