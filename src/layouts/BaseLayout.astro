@@ -8,6 +8,14 @@ export interface Props {
 
 const { title, description, ogImage = '/og-image.jpg', structuredData } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+// Import CSS files so Astro processes them properly
+import '../styles/variables.css';
+import '../styles/reset.css';
+import '../styles/base.css';
+import '../styles/layout.css';
+import '../styles/components.css';
+import '../styles/global.css';
 ---
 
 <!DOCTYPE html>
@@ -45,18 +53,18 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
     )}
     
-    <!-- Preload Newsreader font -->
+    <!-- Optimized font loading - non-blocking with fallback -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
     
-    <!-- CSS Architecture -->
-    <link rel="stylesheet" href="/src/styles/variables.css">
-    <link rel="stylesheet" href="/src/styles/reset.css">
-    <link rel="stylesheet" href="/src/styles/base.css">
-    <link rel="stylesheet" href="/src/styles/layout.css">
-    <link rel="stylesheet" href="/src/styles/components.css">
-    <link rel="stylesheet" href="/src/styles/global.css">
+    <!-- Load fonts asynchronously to avoid render blocking -->
+    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&display=swap">
+    
+    <!-- Fallback for browsers without JavaScript -->
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&display=swap">
+    </noscript>
+    
     
     <!-- Theme initialization -->
     <script is:inline>
