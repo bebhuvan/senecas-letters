@@ -53,7 +53,7 @@ const currentPath = Astro.url.pathname;
   }
   
   .logo {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     font-size: var(--text-md);
@@ -61,6 +61,7 @@ const currentPath = Astro.url.pathname;
     letter-spacing: var(--tracking-tight);
     text-decoration: none;
     color: var(--text-primary);
+    vertical-align: middle;
   }
   
   .logo-icon {
@@ -68,10 +69,13 @@ const currentPath = Astro.url.pathname;
     height: 20px;
     color: var(--royal-blue);
     opacity: 0.8;
+    vertical-align: middle;
+    display: inline-block;
   }
   
   .logo-text {
     font-family: var(--font-serif);
+    line-height: 1;
   }
   
   .nav-items {
