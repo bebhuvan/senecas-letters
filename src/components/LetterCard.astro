@@ -12,7 +12,7 @@ export interface Props {
 }
 
 const { letterNumber, title, excerpt, readingTime, date, featured = false, href } = Astro.props;
-const letterHref = href || `/letters/${createSlug(title)}`;
+const letterHref = href || `/letters/${createSlug(title, parseInt(letterNumber))}`;
 ---
 
 <a href={letterHref} class:list={["letter-card", { featured }]}>

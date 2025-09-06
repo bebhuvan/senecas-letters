@@ -10,7 +10,7 @@ export async function getStaticPaths() {
   const letters = await getCollection('letters');
   
   return letters.map((letter) => ({
-    params: { slug: createSlug(letter.data.title) },
+    params: { slug: createSlug(letter.data.title, letter.data.number) },
     props: { letter }
   }));
 }
@@ -147,7 +147,7 @@ const relatedLetters = allLetters
           <p>Explore similar themes in Seneca's other writings:</p>
           <div class="related-grid">
             {relatedLetters.map(related => (
-              <a href={`/letters/${createSlug(related.data.title)}`} class="related-card">
+              <a href={`/letters/${createSlug(related.data.title, related.data.number)}`} class="related-card">
                 <div class="related-number">Letter {related.data.number}</div>
                 <div class="related-title">{related.data.title}</div>
                 <div class="related-themes">
@@ -164,14 +164,14 @@ const relatedLetters = allLetters
     {(prevLetter || nextLetter) && (
       <nav class="letter-navigation">
         {prevLetter && (
-          <a href={`/letters/${createSlug(prevLetter.data.title)}`} class="nav-card">
+          <a href={`/letters/${createSlug(prevLetter.data.title, prevLetter.data.number)}`} class="nav-card">
             <div class="nav-direction">Previous</div>
             <div class="nav-title">{prevLetter.data.title}</div>
             <div class="nav-number">Letter {prevLetter.data.number}</div>
           </a>
         )}
         {nextLetter && (
-          <a href={`/letters/${createSlug(nextLetter.data.title)}`} class="nav-card next">
+          <a href={`/letters/${createSlug(nextLetter.data.title, nextLetter.data.number)}`} class="nav-card next">
             <div class="nav-direction">Next</div>
             <div class="nav-title">{nextLetter.data.title}</div>
             <div class="nav-number">Letter {nextLetter.data.number}</div>
