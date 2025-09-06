@@ -7,6 +7,19 @@ import { createSlug } from '../utils/slugs';
 import '../styles/global.css';
 
 const letters = await getCollection('letters');
+
+// Create a search-optimized version with only necessary data
+const searchData = letters.map(letter => ({
+  data: {
+    number: letter.data.number,
+    title: letter.data.title,
+    excerpt: letter.data.excerpt,
+    themes: letter.data.themes,
+    readingTime: letter.data.readingTime,
+    date: letter.data.date,
+    featured: letter.data.featured
+  }
+}));
 ---
 
 <BaseLayout 
@@ -96,7 +109,7 @@ const letters = await getCollection('letters');
     </div>
   </div>
   
-  <script define:vars={{ letters }}>
+  <script define:vars={{ letters: searchData }}>
     const searchInput = document.getElementById('searchInput');
     const initialState = document.getElementById('initialState');
     const searchResults = document.getElementById('searchResults');
