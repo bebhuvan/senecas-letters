@@ -1,4 +1,6 @@
 ---
+import { createSlug } from '../utils/slugs';
+
 export interface Props {
   letterNumber: string;
   title: string;
@@ -6,13 +8,14 @@ export interface Props {
   readingTime: number;
   date?: string;
   featured?: boolean;
-  href: string;
+  href?: string;
 }
 
 const { letterNumber, title, excerpt, readingTime, date, featured = false, href } = Astro.props;
+const letterHref = href || `/letters/${createSlug(title)}`;
 ---
 
-<a href={href} class:list={["letter-card", { featured }]}>
+<a href={letterHref} class:list={["letter-card", { featured }]}>
   <div class="letter-number">{letterNumber}</div>
   <h3 class="letter-title">{title}</h3>
   <p class="letter-excerpt">{excerpt}</p>

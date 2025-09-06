@@ -1,4 +1,16 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://seneca-letters.pages.dev/sitemap-index.xml
+# Sitemap location
+Sitemap: https://seneca-letters.r-bhuvanesh2007.workers.dev/sitemap-index.xml
+
+# Block unnecessary paths
+Disallow: /_astro/
+Disallow: /favicon.svg
+Disallow: /og-image.jpg
+
+# Allow important SEO pages
+Allow: /
+Allow: /archive
+Allow: /about
+Allow: /letters/

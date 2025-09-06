@@ -3,9 +3,10 @@ export interface Props {
   title: string;
   description: string;
   ogImage?: string;
+  structuredData?: any;
 }
 
-const { title, description, ogImage = '/og-image.jpg' } = Astro.props;
+const { title, description, ogImage = '/og-image.jpg', structuredData } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -40,6 +41,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <!-- Structured Data -->
+    {structuredData && (
+      <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
+    )}
     
     <!-- Optimized Google Fonts loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

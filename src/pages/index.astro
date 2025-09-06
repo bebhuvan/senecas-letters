@@ -14,11 +14,54 @@ const featured = essentialLetterNumbers
   .filter(Boolean);
 
 const recent = letters.slice(0, 4);
+
+// Enhanced SEO for homepage
+const seoDescription = "Read Seneca's complete Letters to Lucilius online. 124 ancient Stoic philosophy letters on wisdom, virtue, and living well. Free access to timeless philosophical insights for modern life.";
+
+// Homepage structured data
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Seneca's Letters to Lucilius",
+  "description": seoDescription,
+  "url": Astro.site?.toString(),
+  "author": {
+    "@type": "Person",
+    "name": "Lucius Annaeus Seneca",
+    "description": "Roman Stoic philosopher, statesman, and dramatist"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Seneca's Letters to Lucilius",
+    "url": Astro.site?.toString()
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": `${Astro.site}search?q={search_term_string}`
+    },
+    "query-input": "required name=search_term_string"
+  },
+  "mainEntity": {
+    "@type": "CreativeWork",
+    "name": "Letters to Lucilius (Moral Letters)",
+    "author": {
+      "@type": "Person", 
+      "name": "Lucius Annaeus Seneca"
+    },
+    "dateCreated": "62-65 CE",
+    "genre": "Philosophy",
+    "inLanguage": "en-US",
+    "keywords": "Stoicism, Philosophy, Ancient Wisdom, Seneca, Letters to Lucilius, Moral Philosophy, Ethics, Virtue, Stoic Philosophy"
+  }
+};
 ---
 
 <BaseLayout 
-  title="Seneca's Letters to Lucilius"
-  description="124 letters from the Roman philosopher Seneca to his younger friend Lucilius. Timeless wisdom on how to live well."
+  title="Seneca's Letters to Lucilius - Complete Collection Online | Ancient Stoic Philosophy"
+  description={seoDescription}
+  structuredData={structuredData}
 >
   <Navigation />
   

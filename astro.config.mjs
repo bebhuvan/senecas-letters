@@ -3,7 +3,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://seneca-letters.pages.dev',
+  site: 'https://seneca-letters.r-bhuvanesh2007.workers.dev',
   output: 'static',
   build: {
     format: 'directory',
