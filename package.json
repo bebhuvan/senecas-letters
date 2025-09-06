@@ -16,15 +16,15 @@
   "dependencies": {
     "@astrojs/check": "^0.9.4",
     "@astrojs/sitemap": "^3.2.1",
-    "astro": "^4.16.16"
+    "astro": "^4.16.17"
   },
   "devDependencies": {
     "@astrojs/cloudflare": "^11.1.0",
-    "@types/node": "^22.9.0",
-    "lightningcss": "^1.27.0",
+    "@types/node": "^22.9.1",
+    "lightningcss": "^1.28.1",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^5.6.3",
-    "wrangler": "^3.84.0"
+    "wrangler": "^4.34.0"
   }
 }
