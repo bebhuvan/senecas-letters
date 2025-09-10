@@ -5,11 +5,13 @@ import cloudflare from '@astrojs/cloudflare';
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
-  adapter: cloudflare({
-    platformProxy: {
-      enabled: true
+  site: 'https://senecas-letters.r-bhuvanesh2007.workers.dev',
+  adapter: cloudflare(),
+  image: {
+    service: {
+      entrypoint: 'astro/assets/services/noop'
     }
-  }),
+  },
   build: {
     inlineStylesheets: 'always',
   },
