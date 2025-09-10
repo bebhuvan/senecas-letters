@@ -1,0 +1,593 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+// SEO-friendly slug generator
+function createSlug(title: string): string {
+  return title.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
+---
+
+<Layout 
+  title="Seneca's Letters to Lucilius - Timeless Stoic Wisdom"
+  description="Discover Seneca's profound letters to Lucilius - 124 philosophical letters on virtue, mortality, and the art of living well. Timeless Stoic wisdom for modern life."
+  canonical="/"
+>
+  <Header currentPath="/" />
+  
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h1>Seneca's Letters to Lucilius</h1>
+        <p class="subtitle">Timeless wisdom for modern life</p>
+        <p class="meta">124 letters • Written 63-65 CE</p>
+      </div>
+    </section>
+
+    <!-- Pitch Section -->
+    <section class="pitch">
+      <div class="container">
+        <div class="pitch-content">
+          <h2>Philosophy for Living</h2>
+          <div class="pitch-text">
+            <p>
+              Written during his final years, Seneca's letters to his friend Lucilius offer profound insights 
+              into Stoic philosophy and the art of living well. These aren't abstract theories, but practical 
+              wisdom from someone who lived through wealth and poverty, fame and exile, political intrigue 
+              and personal loss.
+            </p>
+            <p>
+              Each letter addresses the fundamental questions we still face today: How do we find meaning? 
+              How do we handle adversity? What makes a life worth living? Seneca's answers, grounded in 
+              two thousand years of wisdom, remain startlingly relevant.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Essential Letters Section -->
+    <section class="featured">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Essential Letters</h2>
+          <p class="section-subtitle">A curated selection of Seneca's most profound insights</p>
+        </div>
+        
+        <div class="featured-grid">
+          <!-- Featured large card -->
+          <article class="featured-card large">
+            <div class="card-content">
+              <div class="letter-number">Letter I</div>
+              <h3 class="letter-title">On the Proper Use of Time</h3>
+              <p class="letter-excerpt">
+                "It is not that we have a short time to live, but that we waste a lot of it. Life is long enough 
+                if you know how to use it. Reclaim your time from the hands of others."
+              </p>
+              <p class="letter-context">
+                Seneca opens his correspondence with perhaps the most fundamental question of human existence: 
+                how do we use our time? This letter lays the foundation for all philosophical practice.
+              </p>
+              <a href="/letters/1-on-saving-time" class="read-more">Read Letter →</a>
+            </div>
+          </article>
+
+          <!-- Secondary large card -->
+          <article class="featured-card large">
+            <div class="card-content">
+              <div class="letter-number">Letter LXXVII</div>
+              <h3 class="letter-title">On Taking Life</h3>
+              <p class="letter-excerpt">
+                "Every new thing excites the mind, but a thing which is familiar becomes an object of contempt. 
+                External things are not the problem—it is your assessment of them."
+              </p>
+              <p class="letter-context">
+                A profound meditation on mortality and the courage required to live fully. Seneca explores 
+                how our perspectives shape our reality and our relationship with life itself.
+              </p>
+              <a href="/letters/77-on-taking-life" class="read-more">Read Letter →</a>
+            </div>
+          </article>
+
+          <!-- Smaller vertical cards -->
+          <article class="featured-card small">
+            <div class="card-content">
+              <div class="letter-number">Letter XVIII</div>
+              <h3 class="letter-title">On Festivals and Fasting</h3>
+              <p class="letter-excerpt">
+                "Set aside certain days during which you shall be content with the scantiest and cheapest fare..."
+              </p>
+              <a href="/letters/18-on-festivals-and-fasting" class="read-more">Read →</a>
+            </div>
+          </article>
+
+          <article class="featured-card small">
+            <div class="card-content">
+              <div class="letter-number">Letter VII</div>
+              <h3 class="letter-title">On Crowds</h3>
+              <p class="letter-excerpt">
+                "Do you ask me what you should regard as especially to be avoided? I say, crowds."
+              </p>
+              <a href="/letters/7-on-crowds" class="read-more">Read →</a>
+            </div>
+          </article>
+
+          <article class="featured-card small">
+            <div class="card-content">
+              <div class="letter-number">Letter XII</div>
+              <h3 class="letter-title">On Old Age</h3>
+              <p class="letter-excerpt">
+                "Let us examine ourselves and rid ourselves of the faults we have acquired over the years."
+              </p>
+              <a href="/letters/12-on-old-age" class="read-more">Read →</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Complete Archive Preview -->
+    <section class="archive-preview">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">The Collection</h2>
+          <p class="section-subtitle">124 letters on philosophy, virtue, and the art of living well</p>
+        </div>
+        
+        <div class="archive-feed">
+          <a href="/letters/1-on-saving-time" class="letter-item">
+            <div class="letter-meta">
+              <span class="number">Letter I</span>
+            </div>
+            <h3 class="title">On the Proper Use of Time</h3>
+            <p class="preview">Greetings from Seneca to his friend Lucilius. Continue to act thus, my dear Lucilius—set yourself free for your own sake; gather and save your time...</p>
+          </a>
+          
+          <a href="/letters/2-on-discursiveness-in-reading" class="letter-item">
+            <div class="letter-meta">
+              <span class="number">Letter II</span>
+            </div>
+            <h3 class="title">On Discursiveness in Reading</h3>
+            <p class="preview">Judging by what you write me, and by what I hear, I am forming a good opinion regarding your future...</p>
+          </a>
+          
+          <a href="/letters/3-on-true-and-false-friendship" class="letter-item">
+            <div class="letter-meta">
+              <span class="number">Letter III</span>
+            </div>
+            <h3 class="title">On True and False Friendship</h3>
+            <p class="preview">You have sent a letter to me through the hand of a friend of yours, as you call him. Then you warn me not to discuss with him all the matters that concern you...</p>
+          </a>
+          
+          <a href="/letters/4-on-the-terrors-of-death" class="letter-item">
+            <div class="letter-meta">
+              <span class="number">Letter IV</span>
+            </div>
+            <h3 class="title">On the Terrors of Death</h3>
+            <p class="preview">Every new thing excites the mind, but a thing which is familiar becomes an object of contempt. This contempt, however, does not extend to the matter of fearing death...</p>
+          </a>
+          
+          <a href="/letters/5-on-the-philosophers-mean" class="letter-item">
+            <div class="letter-meta">
+              <span class="number">Letter V</span>
+            </div>
+            <h3 class="title">On the Philosopher's Mean</h3>
+            <p class="preview">I commend you and rejoice in the fact that you are persistent in your studies, and that, putting all else aside, you make it each day your single endeavor to become a better man than you were...</p>
+          </a>
+          
+          <a href="/letters/6-on-sharing-knowledge" class="letter-item">
+            <div class="letter-meta">
+              <span class="number">Letter VI</span>
+            </div>
+            <h3 class="title">On Sharing Knowledge</h3>
+            <p class="preview">I feel, my dear Lucilius, that I am being not only reformed, but transformed. I do not yet, however, assure yourself free to derive the value that has been proved to me.</p>
+          </a>
+        </div>
+        
+        <div class="view-all">
+          <a href="/library" class="view-all-btn">
+            <span>Explore All 124 Letters</span>
+            <span class="arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* Hero Section */
+  .hero {
+    padding: 4rem 0 3rem;
+    text-align: center;
+    background: var(--background);
+    position: relative;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+    font-weight: 300;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', 'New York', ui-serif, 'Iowan Old Style', 'Apple Garamond', 'Baskerville', 'Times New Roman', 'Droid Serif', 'Times', serif;
+  }
+
+  .hero .subtitle {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: 0.01em;
+    opacity: 0.9;
+  }
+
+  .hero .meta {
+    font-size: 0.875rem;
+    color: var(--terracotta);
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  
+  .hero .meta::before {
+    content: '';
+    display: inline-block;
+    width: 30px;
+    height: 1px;
+    background: var(--terracotta);
+    margin-right: 1rem;
+    vertical-align: middle;
+    opacity: 0.4;
+  }
+
+  /* Pitch Section */
+  .pitch {
+    padding: 0 0 4rem;
+    background: var(--surface);
+  }
+
+  .pitch-content {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .pitch h2 {
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    text-align: center;
+    letter-spacing: -0.01em;
+    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', 'New York', ui-serif, 'Iowan Old Style', 'Apple Garamond', 'Baskerville', 'Times New Roman', 'Droid Serif', 'Times', serif;
+  }
+
+  .pitch-text p {
+    font-size: 1.125rem;
+    line-height: 1.9;
+    color: var(--text-secondary);
+    margin-bottom: 2.25rem;
+    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', ui-serif, 'Iowan Old Style', 'Apple Garamond', 'Baskerville', 'Times New Roman', 'Droid Serif', 'Times', serif;
+    letter-spacing: 0.01em;
+  }
+
+
+  .pitch-text p:last-child {
+    margin-bottom: 0;
+  }
+  
+
+  /* Featured Section */
+  .featured {
+    padding: 4rem 0 3rem;
+    background: var(--background);
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .section-title {
+    font-size: 2.25rem;
+    font-weight: 300;
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.01em;
+    position: relative;
+    padding-bottom: 1.5rem;
+    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', 'New York', ui-serif, 'Iowan Old Style', 'Apple Garamond', 'Baskerville', 'Times New Roman', 'Droid Serif', 'Times', serif;
+  }
+  
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 1px;
+    background: var(--terracotta);
+    opacity: 0.4;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-style: normal;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .featured-card {
+    background: var(--surface);
+    overflow: hidden;
+    border: 1px solid var(--divider);
+    position: relative;
+  }
+
+  .featured-card.large:first-child {
+    grid-column: span 8;
+  }
+
+  .featured-card.large:nth-child(2) {
+    grid-column: span 4;
+  }
+
+  .featured-card.small {
+    grid-column: span 4;
+  }
+
+  .card-content {
+    padding: 2rem;
+  }
+
+  .featured-card.small .card-content {
+    padding: 1.5rem;
+  }
+
+  .letter-number {
+    color: var(--terracotta);
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .letter-title {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
+    line-height: 1.35;
+    font-weight: 400;
+    font-family: 'Crimson Text', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  .featured-card.small .letter-title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .letter-excerpt {
+    color: var(--text-secondary);
+    line-height: 1.75;
+    margin-bottom: 1.75rem;
+    font-size: 1rem;
+    font-style: italic;
+    font-family: Georgia, serif;
+    letter-spacing: 0.01em;
+  }
+
+  .letter-context {
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .read-more {
+    color: var(--terracotta);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Archive Preview */
+  .archive-preview {
+    padding: 3rem 0 5rem;
+    background: var(--surface);
+  }
+
+  .archive-feed {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .letter-item {
+    padding: 1.75rem;
+    border: 1px solid var(--divider);
+    text-decoration: none;
+    display: block;
+    position: relative;
+    background: var(--background);
+  }
+
+  .letter-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .letter-meta .number {
+    color: var(--terracotta);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .letter-meta .theme {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.75rem;
+    background: var(--terracotta-light);
+    border-radius: 12px;
+  }
+
+  .letter-item .title {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.35;
+    font-weight: 400;
+    font-family: 'Crimson Text', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  .letter-item .preview {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.65;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: Georgia, serif;
+    letter-spacing: 0.01em;
+  }
+
+  .view-all {
+    text-align: center;
+    margin-top: 4rem;
+  }
+
+  .view-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    background: transparent;
+    color: var(--terracotta);
+    text-decoration: none;
+    font-weight: 500;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--terracotta);
+    text-transform: uppercase;
+    font-size: 0.875rem;
+  }
+
+  .view-all-btn .arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .view-all-btn:hover .arrow {
+    transform: translateX(0.25rem);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .featured-grid {
+      grid-template-columns: repeat(8, 1fr);
+    }
+    
+    .featured-card.large:first-child {
+      grid-column: span 8;
+    }
+    
+    .featured-card.large:nth-child(2) {
+      grid-column: span 8;
+    }
+    
+    .featured-card.small {
+      grid-column: span 4;
+    }
+    
+    .archive-feed {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      padding: 3rem 0 2rem;
+    }
+
+    .pitch {
+      padding: 1rem 0 4rem;
+    }
+
+    .pitch h2 {
+      font-size: 2rem;
+    }
+
+    .pitch-text p {
+      font-size: 1.1rem;
+    }
+
+    .featured {
+      padding: 4rem 0;
+    }
+
+    .featured-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    
+    .featured-card.large:first-child,
+    .featured-card.large:nth-child(2),
+    .featured-card.small {
+      grid-column: span 1;
+    }
+    
+    .archive-feed {
+      grid-template-columns: 1fr;
+    }
+
+    .card-content {
+      padding: 2rem;
+    }
+
+    .archive-preview {
+      padding: 4rem 0;
+    }
+
+    .section-title {
+      font-size: 2rem;
+    }
+  }
+</style>

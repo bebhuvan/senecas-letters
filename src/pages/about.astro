@@ -1,0 +1,376 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="About - Letters to Lucilius">
+  <Header currentPath="/about" />
+  
+  <main>
+    <!-- Hero Section -->
+    <section class="about-hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1>About</h1>
+          <p class="subtitle">Timeless wisdom for modern readers</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Toggle Section -->
+    <section class="toggle-section">
+      <div class="container">
+        <div class="toggle-container">
+          <button class="toggle-btn active" data-view="letters">About the Letters</button>
+          <button class="toggle-btn" data-view="project">About This Project</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Letters View -->
+    <section class="content-section" id="lettersView">
+      <div class="container">
+        <div class="intro-section">
+          <p class="lead">
+            The <em>Letters to Lucilius</em> represent one of history's most profound collections of philosophical wisdom—a masterwork of Roman Stoicism that has guided readers for nearly two millennia.
+          </p>
+        </div>
+
+        <div class="about-section">
+          <h2>About Seneca</h2>
+          <p>
+            Among the personalities of the early Roman Empire, few offer such dramatic interest as Lucius Annaeus Seneca (4 BCE – 65 CE). Born at Corduba in Spain to the talented rhetorician Annaeus Seneca, he was educated at Rome for the bar and soon attracted to Stoic philosophy—"the stern nurse of heroes during the first century of the Empire," as his translator notes.
+          </p>
+          <p>
+            Seneca's life reads like a Roman tragedy: prominent at the bar, exiled to Corsica for eight years on charges of intimacy with Julia Livilla, recalled in 49 CE to serve as tutor to the young Nero, and ultimately rising to become one of the most powerful men in the Empire. His social connections were distinguished—his brother Gallio appears in the New Testament, and he himself was nearly condemned to death by Caligula for his oratorical skill.
+          </p>
+          <p>
+            The contradictions of his life are striking. As a Stoic philosopher preaching simplicity and detachment, he amassed enormous wealth and wielded imperial power. Yet his philosophical works, particularly these letters written in his final years (63-65 CE), represent his most mature thought—practical wisdom forged in the crucible of Roman politics and personal adversity.
+          </p>
+        </div>
+
+        <div class="about-section">
+          <h2>About This Collection</h2>
+          <p>
+            This digital collection presents all 124 surviving letters from Seneca's <em>Epistulae Morales ad Lucilium</em>, written between 63-65 CE during the philosopher's final years. These letters "form a collection of essays rather than letters" in the traditional sense—each beginning with a concrete incident or observation that serves to justify the philosophical reflections that follow.
+          </p>
+          <p>
+            The structure of each letter reveals Seneca's pedagogical method: a factual starting point (an illness, a sea voyage, an incident in the Naples tunnel, a gathering of friends) leads to abstract philosophical discussion on topics like contempt of death, the stout-heartedness of the sage, or the nature of the Supreme Good. This approach makes ancient wisdom accessible and practical.
+          </p>
+          <p>
+            Modern readers will find themes that feel remarkably contemporary: the dignity of intellectual work, protests against slavery and gladiatorial combats, advocacy for the equality of the sexes and conjugal fidelity, appreciation for plain living and love of nature, and what one scholar calls "the beauty of holiness" presented from a Roman standpoint.
+          </p>
+        </div>
+
+        <div class="about-section">
+          <h2>Why Read the Letters Today?</h2>
+          <p>
+            As Gummere noted in 1916, "in no pagan author, save perhaps Vergil, is the beauty of holiness so sincerely presented from a Roman standpoint." Nearly two millennia later, Seneca's letters remain startlingly relevant. They address timeless human concerns: the value of intelligent reading and cultural study, the dignity of meaningful work, the protest against dehumanizing practices, and the cultivation of character in uncertain times.
+          </p>
+          <p>
+            What makes these letters uniquely valuable is their practical origin in lived experience. Seneca writes not as an academic philosopher but as someone who has navigated the complexities of wealth and power, health and illness, friendship and betrayal. The letters demonstrate what he calls philosophy's true purpose: not mere intellectual exercise but practical wisdom for daily life.
+          </p>
+          <p>
+            Modern readers will find in Seneca's correspondence to Lucilius something increasingly rare: a mature mind wrestling honestly with life's fundamental questions, offering guidance that has been tested against reality's demands. The letters remain, in Gummere's words, "a fruitful and helpful handbook, of the very widest scope and interest"—as relevant today as they were in the first century.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Project View -->
+    <section class="content-section hidden" id="projectView">
+      <div class="container">
+        <div class="intro-section">
+          <p class="lead">
+            A personal journey of discovering Stoic wisdom in the digital age.
+          </p>
+        </div>
+
+        <div class="about-section">
+          <h2>How This Started</h2>
+          <p>
+            Hi, my name is Bhuvan, and I do a whole lot of random things on the internet. One of those things comes from my love for the infinite treasures of the public domain.
+          </p>
+          <p>
+            I wanted to create a website that curates some of the most famous letters from history, inspired by Shaun Usher's Letters of Note—<a href="https://paperlanterns.ink/" target="_blank" rel="noopener">so I did</a>. While looking for interesting letters to post, I stumbled onto Wikisource during a bout of random Googling. (I know, please judge me. I was 30 years old and had no idea Wikisource existed.)
+          </p>
+          <p>
+            Rummaging through its archives, I discovered Seneca's Letters to Lucilius. I added a bunch to my site. At first, I read them distractedly and didn't think much of it. But when I came back to them later, they floored me. The letters are utterly brilliant. Seneca's wisdom is exquisite.
+          </p>
+        </div>
+
+        <div class="about-section">
+          <h2>The Discovery</h2>
+          <p>
+            Just two letters in, I was struck by the sheer depth. There's wisdom here on everything: how to manage your time, how to read, how to deal with love, loss, grief, happiness, and ultimately how to live a meaningful life. What shocks me is that people spend endless time looking for the perfect self-help book and end up reading garbage, when Seneca's letters are pretty much the only self-help you'll ever need.
+          </p>
+          <p>
+            The irony of self-help, of course, is that it's the self that has to help. Relying on something external seems contradictory. But these letters are different. The depth of wisdom and actionable advice they offer on dealing with life's insane unpredictability is extraordinary.
+          </p>
+        </div>
+
+        <div class="about-section">
+          <h2>Why This Website</h2>
+          <p>
+            I thought: more people should read these. They're in the public domain, but they're not easy to access or read. Wikisource is good, but it doesn't show up for most people. So I figured I'd create a simple website, post these letters in a clean, readable format, and hope someone stumbles on them.
+          </p>
+          <p>
+            Maybe they'll read a letter or two. Maybe they'll find some wisdom that helps them deal with the vagaries of life. That's the hope: that whoever reads these letters will find a measure of equanimity in facing both the good and the bad.
+          </p>
+          <p>
+            I hope you get something out of these letters. Thank you for reading.
+          </p>
+        </div>
+
+        <div class="about-section">
+          <h2>Connect</h2>
+          <p>You can find me online:</p>
+          <div class="connect-links">
+            <a href="https://bebhuvan.com/" target="_blank" rel="noopener">📝 bebhuvan.com</a>
+            <a href="https://www.rabbitholes.garden/" target="_blank" rel="noopener">🔗 rabbitholes.garden</a>
+            <a href="https://bhuvan.substack.com/" target="_blank" rel="noopener">📬 newsletter</a>
+            <a href="https://twitter.com/bebhuvan" target="_blank" rel="noopener">🐦 twitter</a>
+            <a href="https://www.linkedin.com/in/bebhuvan/" target="_blank" rel="noopener">💼 linkedin</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .about-hero {
+    padding: 4rem 0 3rem;
+    background: var(--surface);
+    text-align: center;
+  }
+
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .about-hero h1 {
+    font-size: clamp(3rem, 5vw, 4rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .about-hero .subtitle {
+    font-size: 1.375rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  /* Toggle Section */
+  .toggle-section {
+    padding: 2rem 0;
+    background: var(--background);
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .toggle-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .toggle-btn {
+    padding: 0.75rem 2rem;
+    background: transparent;
+    border: 2px solid var(--divider);
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+  }
+
+  .toggle-btn:hover,
+  .toggle-btn.active {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+    color: white;
+  }
+
+  /* Content Sections */
+  .content-section {
+    padding: 6rem 0;
+    background: var(--background);
+  }
+
+  .content-section.hidden {
+    display: none;
+  }
+
+  .intro-section {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+
+  .lead {
+    font-size: 1.375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    max-width: 800px;
+    margin: 0 auto;
+    font-style: italic;
+  }
+
+  .about-section {
+    max-width: 800px;
+    margin: 0 auto 3rem;
+  }
+
+  .about-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .about-section h2 {
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--terracotta);
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  .about-section p {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+
+  .about-section p:last-child {
+    margin-bottom: 0;
+  }
+
+  .about-section em {
+    font-style: italic;
+    color: var(--text-primary);
+  }
+
+  .about-section a {
+    color: var(--terracotta);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s ease;
+  }
+
+  .about-section a:hover {
+    border-bottom-color: var(--terracotta);
+  }
+
+  .connect-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .connect-links a {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    border-radius: 25px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+  }
+
+  .connect-links a:hover {
+    background: var(--terracotta-light);
+    border-color: var(--terracotta);
+    color: var(--terracotta);
+    transform: translateY(-1px);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .about-hero {
+      padding: 3rem 0 2rem;
+    }
+
+    .about-hero h1 {
+      font-size: 2.5rem;
+    }
+
+    .toggle-container {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .toggle-btn {
+      width: 200px;
+    }
+
+    .content-section {
+      padding: 4rem 0;
+    }
+
+    .about-section h2 {
+      font-size: 1.75rem;
+    }
+
+    .about-section p {
+      font-size: 1rem;
+    }
+
+    .lead {
+      font-size: 1.2rem;
+    }
+
+    .connect-links {
+      justify-content: center;
+    }
+
+    .connect-links a {
+      width: 200px;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  // Toggle functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    const lettersView = document.getElementById('lettersView');
+    const projectView = document.getElementById('projectView');
+    
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const view = this.dataset.view;
+        
+        // Remove active class from all buttons
+        toggleBtns.forEach(b => b.classList.remove('active'));
+        
+        // Add active class to clicked button
+        this.classList.add('active');
+        
+        // Hide both views
+        lettersView.classList.add('hidden');
+        projectView.classList.add('hidden');
+        
+        // Show selected view
+        if (view === 'letters') {
+          lettersView.classList.remove('hidden');
+        } else {
+          projectView.classList.remove('hidden');
+        }
+      });
+    });
+  });
+</script>

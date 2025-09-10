@@ -1,0 +1,25 @@
+{
+  "name": "seneca-letters",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "build:check": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:staging": "npm run build && wrangler deploy --env staging",
+    "deploy:production": "npm run build && wrangler deploy --env production"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "astro": "^5.13.7",
+    "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "@astrojs/cloudflare": "^12.6.8",
+    "wrangler": "^4.35.0"
+  }
+}
