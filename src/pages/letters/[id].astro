@@ -4,27 +4,19 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import lettersData from '../../data/all_letters.json';
 
-export async function getStaticPaths() {
-  // Generate SEO-friendly slug from title
-  function createSlug(title: string): string {
-    return title.toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single
-      .trim();
-  }
+const { id } = Astro.params;
 
-  return lettersData.letters.map((letter) => {
-    const slug = createSlug(letter.title);
-    return {
-      params: { id: `${letter.number}-${slug}` },
-      props: { letter }
-    };
+// Find the letter by parsing the ID slug (format: "1-on-saving-time")
+const letterNumber = parseInt(id?.split('-')[0] || '1');
+const letter = lettersData.letters.find(l => l.number === letterNumber);
+
+// If letter not found, return 404
+if (!letter) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Letter not found'
   });
 }
-
-const { letter } = Astro.props;
-const { id } = Astro.params;
 
 // Generate SEO-friendly slug from title (component scope)
 function createSlug(title: string): string {
@@ -35,8 +27,7 @@ function createSlug(title: string): string {
     .trim();
 }
 
-// Extract letter number from slug (format: "1-on-saving-time")
-const letterNumber = parseInt(id?.split('-')[0] || '1');
+// letterNumber is already defined above
 
 // Get previous and next letters for navigation
 const currentIndex = lettersData.letters.findIndex(l => l.number === letterNumber);
