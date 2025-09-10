@@ -39,6 +39,14 @@ const canonicalURL = canonical ? new URL(canonical, Astro.site) : Astro.url;
     <meta name="theme-color" content="#c8632e">
     <meta name="color-scheme" content="light dark">
     
+    <!-- Prevent flash of unstyled content (FOUC) by setting theme immediately -->
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      })();
+    </script>
+    
     <!-- SEO and Social Media -->
     <title>{title}</title>
     <meta name="description" content={description}>
@@ -281,10 +289,9 @@ const canonicalURL = canonical ? new URL(canonical, Astro.site) : Astro.url;
     </style>
 
     <script>
-      // Inline critical JS for better performance
-      function initTheme() {
+      // Initialize theme toggle button text
+      function initThemeToggle() {
         const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
         const toggle = document.querySelector('.theme-toggle');
         if (toggle) {
           toggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
@@ -332,9 +339,9 @@ const canonicalURL = canonical ? new URL(canonical, Astro.site) : Astro.url;
         }
       }
 
-      // Initialize theme and scroll behavior
+      // Initialize theme toggle and scroll behavior
       document.addEventListener('DOMContentLoaded', () => {
-        initTheme();
+        initThemeToggle();
         window.addEventListener('scroll', onScroll, { passive: true });
       });
       
