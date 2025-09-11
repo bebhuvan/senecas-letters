@@ -1,6 +1,19 @@
 import { defineMiddleware } from 'astro:middleware';
 
+// Generate a cryptographically secure nonce
+function generateNonce(): string {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array));
+}
+
 export const onRequest = defineMiddleware((context, next) => {
+  // Generate nonce for this request
+  const nonce = generateNonce();
+  
+  // Store nonce in context for use in pages
+  context.locals.nonce = nonce;
+  
   // Call the next middleware/page
   return next().then((response) => {
     // Clone the response to add headers
@@ -10,12 +23,11 @@ export const onRequest = defineMiddleware((context, next) => {
       headers: new Headers(response.headers)
     });
 
-    // Content Security Policy - Allow inline styles and scripts from self
-    // Note: We need unsafe-inline for Astro's inlined styles and theme toggle
+    // Strict Content Security Policy with nonce
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' static.cloudflareinsights.com", // Allow inline scripts and Cloudflare Insights
-      "style-src 'self' 'unsafe-inline' fonts.googleapis.com", // Allow inline styles and Google Fonts
+      `script-src 'self' 'nonce-${nonce}' static.cloudflareinsights.com`, // Use nonce instead of unsafe-inline
+      "style-src 'self' 'unsafe-inline' fonts.googleapis.com", // Still need unsafe-inline for Astro styles
       "font-src 'self' fonts.gstatic.com", // Allow Google Fonts
       "img-src 'self' data:", // Allow self and data URLs
       "connect-src 'self' cloudflareinsights.com", // Allow connections to self and Cloudflare Insights
