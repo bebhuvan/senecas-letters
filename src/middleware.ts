@@ -14,11 +14,11 @@ export const onRequest = defineMiddleware((context, next) => {
     // Note: We need unsafe-inline for Astro's inlined styles and theme toggle
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'", // Allow inline scripts for theme toggle
+      "script-src 'self' 'unsafe-inline' static.cloudflareinsights.com", // Allow inline scripts and Cloudflare Insights
       "style-src 'self' 'unsafe-inline' fonts.googleapis.com", // Allow inline styles and Google Fonts
       "font-src 'self' fonts.gstatic.com", // Allow Google Fonts
       "img-src 'self' data:", // Allow self and data URLs
-      "connect-src 'self'", // Allow connections to self
+      "connect-src 'self' cloudflareinsights.com", // Allow connections to self and Cloudflare Insights
       "frame-ancestors 'none'", // Prevent clickjacking
       "base-uri 'self'", // Restrict base URI
       "object-src 'none'", // Block plugins
