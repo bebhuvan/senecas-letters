@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+        .letters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .letter-card {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .letter-card.hidden {
+            display: none;
+        }
+        .letter-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .letter-preview {
+            color: #666;
+            font-size: 14px;
+        }
+        .status {
+            padding: 10px;
+            background: #e0e0e0;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Functionality Test</h1>
+    
+    <div class="status" id="status">
+        Status: Page loaded
+    </div>
+    
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search letters...">
+    </div>
+    
+    <div class="letters-grid" id="lettersGrid">
+        <div class="letter-card" data-theme="Time">
+            <div class="letter-title">Letter 1: ON SAVING TIME</div>
+            <div class="letter-preview">Continue to act thus, my dear Lucilius—set yourself free for your own sake...</div>
+        </div>
+        <div class="letter-card" data-theme="Reading">
+            <div class="letter-title">Letter 2: ON DISCURSIVENESS IN READING</div>
+            <div class="letter-preview">Judging by what you write me, and by what I hear, I am forming a good opinion...</div>
+        </div>
+        <div class="letter-card" data-theme="Friendship">
+            <div class="letter-title">Letter 3: ON TRUE AND FALSE FRIENDSHIP</div>
+            <div class="letter-preview">You have sent a letter to me through the hand of a friend of yours...</div>
+        </div>
+        <div class="letter-card" data-theme="Death">
+            <div class="letter-title">Letter 4: ON THE TERRORS OF DEATH</div>
+            <div class="letter-preview">Keep on as you have begun, and make all possible haste...</div>
+        </div>
+        <div class="letter-card" data-theme="Philosophy">
+            <div class="letter-title">Letter 5: THE PHILOSOPHER'S MEAN</div>
+            <div class="letter-preview">I commend you and rejoice in the fact that you are persistent in your studies...</div>
+        </div>
+    </div>
+    
+    <script>
+        const statusEl = document.getElementById('status');
+        
+        function updateStatus(message) {
+            console.log(message);
+            statusEl.textContent = 'Status: ' + message;
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus('DOM loaded, initializing search...');
+            
+            const searchInput = document.getElementById('searchInput');
+            const lettersGrid = document.getElementById('lettersGrid');
+            
+            if (!searchInput) {
+                updateStatus('ERROR: Search input not found!');
+                return;
+            }
+            
+            if (!lettersGrid) {
+                updateStatus('ERROR: Letters grid not found!');
+                return;
+            }
+            
+            const allLetters = Array.from(lettersGrid.children);
+            updateStatus(`Found ${allLetters.length} letters`);
+            
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                updateStatus(`Searching for: "${searchTerm}"`);
+                
+                let visibleCount = 0;
+                
+                allLetters.forEach(letter => {
+                    const title = letter.querySelector('.letter-title')?.textContent?.toLowerCase() || '';
+                    const preview = letter.querySelector('.letter-preview')?.textContent?.toLowerCase() || '';
+                    
+                    if (searchTerm === '' || title.includes(searchTerm) || preview.includes(searchTerm)) {
+                        letter.classList.remove('hidden');
+                        visibleCount++;
+                    } else {
+                        letter.classList.add('hidden');
+                    }
+                });
+                
+                updateStatus(`Showing ${visibleCount} of ${allLetters.length} letters for search: "${searchTerm}"`);
+            });
+            
+            updateStatus('Search initialized successfully!');
+        });
+    </script>
+</body>
+</html>

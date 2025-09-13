@@ -2,23 +2,44 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import SearchScript from '../components/SearchScript.astro';
+import lettersData from '../data/all_letters.json';
 
-// Sample data - in a real implementation, this would come from a data source
-const letters = Array.from({length: 124}, (_, i) => ({
-  id: i + 1,
-  number: i + 1 < 10 ? `0${i + 1}` : `${i + 1}`,
-  romanNumeral: toRoman(i + 1),
-  title: getLetterTitle(i + 1),
-  theme: getLetterTheme(i + 1),
-  preview: getLetterPreview(i + 1),
-  date: `${65 - Math.floor(i / 12)} CE`, // Approximate dating
-}));
+// Clean title by removing footnote references like [1], [2], etc.
+function cleanTitle(title: string): string {
+  return title.replace(/\[\d+\]/g, '').trim();
+}
+
+// SEO-friendly slug generator
+function createSlug(title: string): string {
+  return title.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .trim();
+}
+
+// Process the actual letters data
+const letters = lettersData.letters.map((letter) => {
+  const cleanedTitle = cleanTitle(letter.title);
+  const slug = createSlug(cleanedTitle);
+  
+  return {
+    id: letter.number,
+    number: letter.number.toString(),
+    displayNumber: letter.number.toString(), // Use regular numbers instead of roman
+    title: cleanedTitle, // Clean footnote references
+    theme: getLetterTheme(letter.number),
+    preview: letter.content.substring(0, 200).replace(/\[\d+\]/g, '') + '...', // Also clean preview
+    date: `${65 - Math.floor((letter.number - 1) / 12)} CE`, // Approximate dating
+    url: `/letters/${letter.number}-${slug}` // SEO-friendly URL
+  };
+});
 
 function toRoman(num: number): string {
   const romanNumerals = [
-    ['XC', 90], ['LXXX', 80], ['LXX', 70], ['LX', 60], ['L', 50],
-    ['XL', 40], ['XXX', 30], ['XX', 20], ['X', 10], ['IX', 9],
-    ['V', 5], ['IV', 4], ['I', 1]
+    ['C', 100], ['XC', 90], ['L', 50], ['XL', 40],
+    ['X', 10], ['IX', 9], ['V', 5], ['IV', 4], ['I', 1]
   ];
   let result = '';
   for (const [roman, value] of romanNumerals) {
@@ -30,38 +51,9 @@ function toRoman(num: number): string {
   return result;
 }
 
-function getLetterTitle(num: number): string {
-  const titles = {
-    1: "On the Proper Use of Time",
-    2: "On Discursiveness in Reading",
-    3: "On True and False Friendship",
-    4: "On the Terrors of Death",
-    5: "On the Philosopher's Mean",
-    6: "On Sharing Knowledge",
-    7: "On Crowds",
-    8: "On the Philosopher's Seclusion",
-    9: "On Philosophy and Friendship",
-    10: "On Living to Oneself",
-    11: "On the Blush of Modesty",
-    12: "On Old Age",
-    18: "On Festivals and Fasting",
-    77: "On Taking Life"
-  };
-  return titles[num] || `On Philosophy and Life - Letter ${num}`;
-}
-
 function getLetterTheme(num: number): string {
   const themes = ["Time & Life", "Learning", "Friendship", "Death", "Philosophy", "Knowledge", "Society", "Solitude", "Virtue", "Self", "Character", "Aging"];
   return themes[num % themes.length];
-}
-
-function getLetterPreview(num: number): string {
-  const previews = {
-    1: "Greetings from Seneca to his friend Lucilius. Continue to act thus, my dear Lucilius—set yourself free for your own sake; gather and save your time...",
-    2: "Judging by what you write me, and by what I hear, I am forming a good opinion regarding your future...",
-    3: "You have sent a letter to me through the hand of a friend of yours, as you call him. Then you warn me not to discuss with him all the matters that concern you..."
-  };
-  return previews[num] || `A letter filled with timeless wisdom and practical philosophy from Seneca to his dear friend Lucilius. Letter ${num} explores profound insights into the human condition and the art of living well.`;
 }
 ---
 
@@ -92,6 +84,7 @@ function getLetterPreview(num: number): string {
     <!-- Filters -->
     <section class="filters">
       <div class="container">
+        <div id="resultCount" class="result-count"></div>
         <div class="filter-tabs">
           <button class="filter-tab active" data-filter="all">All Letters</button>
           <button class="filter-tab" data-filter="Time & Life">Time & Life</button>
@@ -116,10 +109,10 @@ function getLetterPreview(num: number): string {
       <div class="container">
         <div class="letters-grid" id="lettersGrid">
           {letters.map((letter) => (
-            <a href={`/letters/${letter.id}`} class="letter-card" data-theme={letter.theme}>
+            <a href={letter.url} class="letter-card" data-theme={letter.theme}>
               <div class="card-header">
                 <div class="letter-info">
-                  <span class="letter-number">Letter {letter.romanNumeral}</span>
+                  <span class="letter-number" data-number={letter.number}>Letter {letter.displayNumber}</span>
                   <span class="letter-theme">{letter.theme}</span>
                 </div>
                 <span class="letter-date">{letter.date}</span>
@@ -491,90 +484,14 @@ function getLetterPreview(num: number): string {
   }
 </style>
 
-<script>
-  // Search functionality
-  const searchInput = document.getElementById('searchInput') as HTMLInputElement;
-  const lettersGrid = document.getElementById('lettersGrid') as HTMLElement;
-  const filterTabs = document.querySelectorAll('.filter-tab');
-  const sortSelect = document.getElementById('sortSelect') as HTMLSelectElement;
-  
-  let allLetters = Array.from(lettersGrid.children) as HTMLElement[];
-  let currentFilter = 'all';
-
-  // Search
-  searchInput?.addEventListener('input', (e) => {
-    const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
-    filterAndSort();
-  });
-
-  // Filter tabs
-  filterTabs.forEach(tab => {
-    tab.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const filter = target.getAttribute('data-filter') || 'all';
-      
-      // Update active tab
-      filterTabs.forEach(t => t.classList.remove('active'));
-      target.classList.add('active');
-      
-      currentFilter = filter;
-      filterAndSort();
-    });
-  });
-
-  // Sort
-  sortSelect?.addEventListener('change', () => {
-    filterAndSort();
-  });
-
-  function filterAndSort() {
-    const searchTerm = searchInput?.value.toLowerCase() || '';
-    const sortBy = sortSelect?.value || 'number';
-    
-    let filteredLetters = allLetters.filter(letter => {
-      // Theme filter
-      if (currentFilter !== 'all') {
-        const letterTheme = letter.getAttribute('data-theme');
-        if (letterTheme !== currentFilter) return false;
-      }
-      
-      // Search filter
-      if (searchTerm) {
-        const title = letter.querySelector('.letter-title')?.textContent?.toLowerCase() || '';
-        const preview = letter.querySelector('.letter-preview')?.textContent?.toLowerCase() || '';
-        const theme = letter.querySelector('.letter-theme')?.textContent?.toLowerCase() || '';
-        
-        return title.includes(searchTerm) || preview.includes(searchTerm) || theme.includes(searchTerm);
-      }
-      
-      return true;
-    });
-
-    // Sort
-    filteredLetters.sort((a, b) => {
-      switch (sortBy) {
-        case 'title':
-          const titleA = a.querySelector('.letter-title')?.textContent || '';
-          const titleB = b.querySelector('.letter-title')?.textContent || '';
-          return titleA.localeCompare(titleB);
-        case 'theme':
-          const themeA = a.querySelector('.letter-theme')?.textContent || '';
-          const themeB = b.querySelector('.letter-theme')?.textContent || '';
-          return themeA.localeCompare(themeB);
-        default: // number
-          const numberA = parseInt(a.querySelector('.letter-number')?.textContent?.match(/\d+/)?.[0] || '0');
-          const numberB = parseInt(b.querySelector('.letter-number')?.textContent?.match(/\d+/)?.[0] || '0');
-          return numberA - numberB;
-      }
-    });
-
-    // Update grid
-    lettersGrid.innerHTML = '';
-    filteredLetters.forEach(letter => lettersGrid.appendChild(letter));
+<style>
+  .result-count {
+    padding: 0.5rem 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-bottom: 1rem;
   }
+</style>
 
-  // Initialize
-  document.addEventListener('DOMContentLoaded', () => {
-    allLetters = Array.from(lettersGrid?.children || []) as HTMLElement[];
-  });
-</script>
+<SearchScript />

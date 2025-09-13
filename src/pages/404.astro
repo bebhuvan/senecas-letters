@@ -1,0 +1,273 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout 
+  title="Page Not Found - Seneca's Letters to Lucilius"
+  description="The page you're looking for could not be found. Explore Seneca's letters or return to the homepage."
+>
+  <Header />
+  
+  <main class="not-found-main">
+    <div class="container">
+      <div class="not-found-content">
+        <div class="error-code">404</div>
+        
+        <div class="philosophical-quote">
+          <blockquote>
+            "We suffer more in imagination than in reality."
+          </blockquote>
+          <cite>— Seneca, Letter XIII</cite>
+        </div>
+        
+        <h1>The Path You Seek Does Not Exist</h1>
+        
+        <p class="error-message">
+          Like a letter lost in time, this page cannot be found. Perhaps it never existed, 
+          or perhaps it has been swept away by the currents of change.
+        </p>
+        
+        <div class="suggested-actions">
+          <h2>Where Would You Like to Go?</h2>
+          
+          <div class="action-grid">
+            <a href="/" class="action-card">
+              <div class="action-icon">🏛️</div>
+              <h3>Return Home</h3>
+              <p>Begin your journey with Seneca's wisdom</p>
+            </a>
+            
+            <a href="/library" class="action-card">
+              <div class="action-icon">📚</div>
+              <h3>Browse Library</h3>
+              <p>Explore all 124 letters to Lucilius</p>
+            </a>
+            
+            <a href="/letters/1-on-saving-time" class="action-card">
+              <div class="action-icon">⏳</div>
+              <h3>Start Reading</h3>
+              <p>Begin with "On the Proper Use of Time"</p>
+            </a>
+            
+            <a href="/about" class="action-card">
+              <div class="action-icon">🎭</div>
+              <h3>About Seneca</h3>
+              <p>Learn about the philosopher and his teachings</p>
+            </a>
+          </div>
+        </div>
+        
+        <div class="wisdom-note">
+          <p>
+            "Every new beginning comes from some other beginning's end." 
+            <br>
+            — Seneca
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <Footer />
+</Layout>
+
+<style>
+  .not-found-main {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    padding: 4rem 0;
+    background: linear-gradient(135deg, var(--background) 0%, var(--surface) 100%);
+  }
+  
+  .not-found-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .error-code {
+    font-size: clamp(4rem, 12vw, 8rem);
+    font-weight: 300;
+    color: var(--terracotta);
+    margin-bottom: 2rem;
+    opacity: 0.8;
+    font-family: 'Lora', serif;
+  }
+  
+  .philosophical-quote {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: var(--surface);
+    border-left: 4px solid var(--terracotta);
+    border-radius: 8px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 3rem;
+  }
+  
+  .philosophical-quote blockquote {
+    font-size: 1.5rem;
+    font-style: italic;
+    color: var(--text-primary);
+    margin: 0;
+    font-family: 'Lora', serif;
+    line-height: 1.4;
+  }
+  
+  .philosophical-quote cite {
+    display: block;
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-style: normal;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .not-found-content h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    font-family: 'Lora', serif;
+  }
+  
+  .error-message {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 4rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 4rem;
+  }
+  
+  .suggested-actions h2 {
+    font-size: 1.75rem;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    font-family: 'Lora', serif;
+    font-weight: 500;
+  }
+  
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+  }
+  
+  .action-card {
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--terracotta);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  
+  .action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--terracotta-light);
+  }
+  
+  .action-card:hover::before {
+    transform: scaleX(1);
+  }
+  
+  .action-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  
+  .action-card h3 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-family: 'Lora', serif;
+    font-weight: 500;
+  }
+  
+  .action-card p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+  
+  .wisdom-note {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    background: var(--terracotta-light);
+    border-radius: 8px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .wisdom-note p {
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  /* Dark mode adjustments */
+  [data-theme="dark"] .not-found-main {
+    background: linear-gradient(135deg, var(--background) 0%, #1a1a1a 100%);
+  }
+  
+  [data-theme="dark"] .action-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .not-found-main {
+      padding: 2rem 0;
+    }
+    
+    .philosophical-quote {
+      padding: 1.5rem;
+    }
+    
+    .philosophical-quote blockquote {
+      font-size: 1.25rem;
+    }
+    
+    .action-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .action-card {
+      padding: 1.5rem;
+    }
+    
+    .error-message {
+      font-size: 1.1rem;
+    }
+  }
+</style>

@@ -40,7 +40,7 @@ const canonicalURL = canonical ? new URL(canonical, Astro.site) : Astro.url;
     <meta name="color-scheme" content="light dark">
     
     <!-- Prevent flash of unstyled content (FOUC) by setting theme immediately -->
-    <script nonce={Astro.locals.nonce}>
+    <script is:inline>
       (function() {
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -335,7 +335,7 @@ const canonicalURL = canonical ? new URL(canonical, Astro.site) : Astro.url;
       }
     </style>
 
-    <script nonce={Astro.locals.nonce}>
+    <script is:inline>
       // Initialize theme toggle button text
       function initThemeToggle() {
         const savedTheme = localStorage.getItem('theme') || 'light';

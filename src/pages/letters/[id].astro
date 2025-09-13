@@ -6,8 +6,17 @@ import lettersData from '../../data/all_letters.json';
 
 const { id } = Astro.params;
 
-// Find the letter by parsing the ID slug (format: "1-on-saving-time")
-const letterNumber = parseInt(id?.split('-')[0] || '1');
+// Only accept full slug format: "84-on-gathering-ideas"
+// Reject old format like just "84"
+if (!id || !id.includes('-')) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Letter not found'
+  });
+}
+
+// Find the letter by parsing the ID slug (format: "84-on-gathering-ideas")
+const letterNumber = parseInt(id.split('-')[0]);
 const letter = lettersData.letters.find(l => l.number === letterNumber);
 
 // If letter not found, return 404
@@ -58,12 +67,21 @@ const letterDescription = letter.content
   .replace(/\[\d+\]/g, '') // Remove footnotes
   .substring(0, 160) + '...'; // Truncate for meta description
 
-// SEO-friendly slug for this letter
-const currentSlug = createSlug(letter.title);
+// Clean title by removing footnote references like [1], [2], etc.
+function cleanTitle(title: string): string {
+  return title.replace(/\[\d+\]/g, '').trim();
+}
 
-// Helper function for template use
+const cleanedTitle = cleanTitle(letter.title);
+
+// SEO-friendly slug for this letter
+const currentSlug = createSlug(cleanedTitle);
+
+// Helper function for template use - SEO-friendly URLs with title
 function getLetterUrl(letterObj: any): string {
-  return `/letters/${letterObj.number}-${createSlug(letterObj.title)}`;
+  const cleanedTitle = cleanTitle(letterObj.title);
+  const slug = createSlug(cleanedTitle);
+  return `/letters/${letterObj.number}-${slug}`;
 }
 
 // Function to format content with proper paragraphs, creating new paragraphs where numbers existed
@@ -116,7 +134,7 @@ function formatContent(content: string): string {
 ---
 
 <Layout 
-  title={`Letter ${romanNumeral}: ${letter.title.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} - Seneca`}
+  title={`Letter ${letter.number}: ${cleanedTitle.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} - Seneca`}
   description={letterDescription}
   ogType="article"
   canonical={`/letters/${letter.number}-${currentSlug}`}
@@ -131,10 +149,10 @@ function formatContent(content: string): string {
         <!-- Letter Header -->
         <header class="letter-header">
           <div class="letter-meta">
-            <span class="letter-number">Letter {romanNumeral}</span>
+            <span class="letter-number">Letter {letter.number}</span>
             <span class="letter-date">c. 65 CE</span>
           </div>
-          <h1 class="letter-title">{letter.title.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</h1>
+          <h1 class="letter-title">{cleanedTitle.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</h1>
           
           <!-- Reading Controls -->
           <div class="reading-controls">

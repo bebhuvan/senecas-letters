@@ -1,0 +1,192 @@
+---
+// This component provides an efficient search implementation
+---
+
+<script is:inline>
+(function() {
+  console.log('[Search] Initializing enhanced search...');
+  
+  // Debounce function to limit search frequency
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  
+  // Simple fuzzy search scoring
+  function searchScore(text, query) {
+    text = text.toLowerCase();
+    query = query.toLowerCase();
+    
+    // Exact match gets highest score
+    if (text === query) return 1000;
+    
+    // Contains exact phrase
+    if (text.includes(query)) return 100;
+    
+    // All words present (AND search)
+    const words = query.split(/\s+/);
+    const allWordsPresent = words.every(word => text.includes(word));
+    if (allWordsPresent) return 50;
+    
+    // Some words present (OR search)
+    const someWordsPresent = words.some(word => text.includes(word));
+    if (someWordsPresent) return 10;
+    
+    return 0;
+  }
+  
+  function initializeSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const lettersGrid = document.getElementById('lettersGrid');
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const sortSelect = document.getElementById('sortSelect');
+    
+    if (!searchInput || !lettersGrid) {
+      console.error('[Search] Required elements not found');
+      return;
+    }
+    
+    // Cache letter data for faster searching
+    const letters = Array.from(lettersGrid.children);
+    const searchIndex = letters.map(letter => {
+      const title = letter.querySelector('.letter-title')?.textContent || '';
+      const preview = letter.querySelector('.letter-preview')?.textContent || '';
+      const theme = letter.querySelector('.letter-theme')?.textContent || '';
+      const number = letter.querySelector('.letter-number')?.textContent || '';
+      
+      // Create searchable text
+      const searchText = `${title} ${preview} ${theme} ${number}`.toLowerCase();
+      
+      return {
+        element: letter,
+        title,
+        preview,
+        theme,
+        searchText,
+        originalDisplay: letter.style.display || ''
+      };
+    });
+    
+    console.log(`[Search] Indexed ${searchIndex.length} letters`);
+    
+    let currentFilter = 'all';
+    let lastQuery = '';
+    
+    // Main search function
+    const performSearch = debounce(function() {
+      const query = searchInput.value.trim();
+      const sortBy = sortSelect?.value || 'number';
+      
+      console.log(`[Search] Searching for: "${query}"`);
+      
+      // Track results
+      let visibleCount = 0;
+      const results = [];
+      
+      // Score and filter letters
+      searchIndex.forEach(item => {
+        let show = true;
+        let score = 0;
+        
+        // Apply theme filter
+        if (currentFilter !== 'all' && item.theme !== currentFilter) {
+          show = false;
+        }
+        
+        // Apply search
+        if (show && query) {
+          score = searchScore(item.searchText, query);
+          show = score > 0;
+        }
+        
+        if (show) {
+          item.element.style.display = item.originalDisplay;
+          results.push({ item, score });
+          visibleCount++;
+        } else {
+          item.element.style.display = 'none';
+        }
+      });
+      
+      // Sort visible results
+      if (query && results.length > 0) {
+        // Sort by relevance when searching
+        results.sort((a, b) => b.score - a.score);
+        results.forEach(({ item }) => {
+          lettersGrid.appendChild(item.element);
+        });
+      } else if (results.length > 0) {
+        // Sort by selected criteria when not searching
+        results.sort((a, b) => {
+          switch (sortBy) {
+            case 'title':
+              return a.item.title.localeCompare(b.item.title);
+            case 'theme':
+              return a.item.theme.localeCompare(b.item.theme);
+            default:
+              const numA = parseInt(a.item.element.querySelector('.letter-number')?.getAttribute('data-number') || '0');
+              const numB = parseInt(b.item.element.querySelector('.letter-number')?.getAttribute('data-number') || '0');
+              return numA - numB;
+          }
+        });
+        results.forEach(({ item }) => {
+          lettersGrid.appendChild(item.element);
+        });
+      }
+      
+      // Update result count (optional - add a div with id="resultCount" to show this)
+      const resultDiv = document.getElementById('resultCount');
+      if (resultDiv) {
+        if (query) {
+          resultDiv.textContent = `Found ${visibleCount} letter${visibleCount !== 1 ? 's' : ''} matching "${query}"`;
+        } else {
+          resultDiv.textContent = `Showing ${visibleCount} letter${visibleCount !== 1 ? 's' : ''}`;
+        }
+      }
+      
+      console.log(`[Search] Results: ${visibleCount} visible`);
+      lastQuery = query;
+    }, 150); // 150ms debounce
+    
+    // Event listeners
+    searchInput.addEventListener('input', performSearch);
+    searchInput.addEventListener('keyup', function(e) {
+      if (e.key === 'Escape') {
+        this.value = '';
+        performSearch();
+      }
+    });
+    
+    // Filter tabs
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        filterTabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        currentFilter = this.getAttribute('data-filter') || 'all';
+        performSearch();
+      });
+    });
+    
+    // Sort select
+    if (sortSelect) {
+      sortSelect.addEventListener('change', performSearch);
+    }
+    
+    console.log('[Search] Enhanced search ready!');
+  }
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSearch);
+  } else {
+    initializeSearch();
+  }
+})();
+</script>

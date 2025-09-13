@@ -1,0 +1,79 @@
+---
+import Layout from '../layouts/Layout.astro';
+import lettersData from '../data/all_letters.json';
+
+// Process the actual letters data (only first 10 for testing)
+const letters = lettersData.letters.slice(0, 10).map((letter) => ({
+  id: letter.number,
+  title: letter.title,
+  preview: letter.content.substring(0, 150) + '...'
+}));
+---
+
+<Layout title="Test Library Search">
+  <main>
+    <div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+      <h1>Search Test Page</h1>
+      <p>This is a test page to verify search functionality works.</p>
+      
+      <div style="margin: 2rem 0;">
+        <input 
+          type="text" 
+          id="testSearch" 
+          placeholder="Type to search..." 
+          style="width: 100%; padding: 1rem; font-size: 1rem; border: 2px solid #ccc;"
+        />
+      </div>
+      
+      <div id="searchStatus" style="padding: 1rem; background: #f0f0f0; margin-bottom: 1rem;">
+        Status: Ready
+      </div>
+      
+      <div id="testGrid">
+        {letters.map((letter) => (
+          <div class="test-letter" style="padding: 1rem; margin: 1rem 0; border: 1px solid #ddd;">
+            <h3 class="test-title">{letter.title}</h3>
+            <p class="test-preview">{letter.preview}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script is:inline>
+  console.log('Test page script starting...');
+  
+  const searchInput = document.getElementById('testSearch');
+  const statusDiv = document.getElementById('searchStatus');
+  const grid = document.getElementById('testGrid');
+  
+  if (!searchInput || !grid) {
+    console.error('Elements not found!');
+    if (statusDiv) statusDiv.textContent = 'Status: ERROR - Elements not found';
+  } else {
+    const letters = Array.from(grid.children);
+    console.log('Found', letters.length, 'letters');
+    
+    searchInput.addEventListener('input', function(e) {
+      const term = e.target.value.toLowerCase();
+      let visible = 0;
+      
+      letters.forEach(letter => {
+        const title = letter.querySelector('.test-title')?.textContent?.toLowerCase() || '';
+        const preview = letter.querySelector('.test-preview')?.textContent?.toLowerCase() || '';
+        
+        if (term === '' || title.includes(term) || preview.includes(term)) {
+          letter.style.display = '';
+          visible++;
+        } else {
+          letter.style.display = 'none';
+        }
+      });
+      
+      statusDiv.textContent = `Status: Showing ${visible} of ${letters.length} letters for "${term}"`;
+    });
+    
+    statusDiv.textContent = 'Status: Search initialized successfully!';
+  }
+</script>

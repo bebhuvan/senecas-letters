@@ -8,6 +8,11 @@ function generateNonce(): string {
 }
 
 export const onRequest = defineMiddleware((context, next) => {
+  // TEMPORARY: Disable CSP in development for debugging
+  if (import.meta.env.DEV) {
+    return next();
+  }
+  
   // Generate nonce for this request
   const nonce = generateNonce();
   
