@@ -26,7 +26,7 @@ export const onRequest = defineMiddleware((context, next) => {
     // Strict Content Security Policy with nonce, strict-dynamic, and backward compatibility
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' static.cloudflareinsights.com`, // Nonce + strict-dynamic + backward compatibility
+      `script-src 'self' 'nonce-${nonce}' 'sha256-hNa9rKEnrYPp05vHw8SL7olHPePrhcjQPqsIl8WAMps=' 'strict-dynamic' 'unsafe-inline' static.cloudflareinsights.com`, // Nonce + hash + strict-dynamic + backward compatibility
       "style-src 'self' 'unsafe-inline' fonts.googleapis.com", // Still need unsafe-inline for Astro styles
       "font-src 'self' fonts.gstatic.com", // Allow Google Fonts
       "img-src 'self' data:", // Allow self and data URLs
