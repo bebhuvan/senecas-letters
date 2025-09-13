@@ -212,6 +212,12 @@ function formatContent(content: string): string {
 </Layout>
 
 <style>
+  /* Color Variables */
+  :root {
+    --terracotta: #B87333;
+    --terracotta-light: rgba(184, 115, 51, 0.05);
+  }
+
   .letter-main {
     min-height: 100vh;
     background: var(--background);
@@ -518,34 +524,34 @@ function formatContent(content: string): string {
     line-height: 1.5;
   }
 
-  /* Font Variations */
-  .font-lora {
-    font-family: 'Lora', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Minion Pro', 'Hoefler Text', Georgia, serif;
+  /* Font Variations - Global styles */
+  :global(.font-lora) {
+    font-family: 'Lora', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Minion Pro', 'Hoefler Text', Georgia, serif !important;
     font-feature-settings: 'liga' 1, 'kern' 1;
   }
-  .font-liberation {
-    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', Georgia, serif;
+  :global(.font-liberation) {
+    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', Georgia, serif !important;
     font-feature-settings: 'liga' 1, 'kern' 1;
   }
-  .font-iowan {
-    font-family: 'Iowan Old Style', 'New York', 'Apple Garamond', 'Baskerville', Georgia, serif;
+  :global(.font-iowan) {
+    font-family: 'Iowan Old Style', 'New York', 'Apple Garamond', 'Baskerville', Georgia, serif !important;
     font-feature-settings: 'liga' 1, 'kern' 1, 'onum' 1;
   }
-  .font-palatino {
-    font-family: 'Palatino Linotype', 'Palatino', 'Book Antiqua', 'URW Palladio L', Georgia, serif;
+  :global(.font-palatino) {
+    font-family: 'Palatino Linotype', 'Palatino', 'Book Antiqua', 'URW Palladio L', Georgia, serif !important;
     font-feature-settings: 'liga' 1, 'kern' 1;
   }
-  .font-georgia { 
-    font-family: Georgia, 'Nimbus Roman', 'Liberation Serif', serif;
+  :global(.font-georgia) { 
+    font-family: Georgia, 'Nimbus Roman', 'Liberation Serif', serif !important;
     font-feature-settings: 'liga' 1, 'kern' 1;
   }
-  .font-system-sans { 
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', 'DejaVu Sans', system-ui, sans-serif;
+  :global(.font-system-sans) { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', 'DejaVu Sans', system-ui, sans-serif !important;
     font-weight: 400;
     letter-spacing: -0.014em;
   }
-  .font-sf-pro {
-    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', system-ui, sans-serif;
+  :global(.font-sf-pro) {
+    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', system-ui, sans-serif !important;
     font-weight: 400;
     letter-spacing: -0.016em;
     font-feature-settings: 'liga' 1, 'kern' 1;
@@ -606,25 +612,66 @@ function formatContent(content: string): string {
   }
 </style>
 
-<script>
-  // Reading controls functionality
-  const letterBody = document.getElementById('letterBody');
-  const fontSelect = document.getElementById('fontSelect');
-  const decreaseSizeBtn = document.getElementById('decreaseSize');
-  const increaseSizeBtn = document.getElementById('increaseSize');
-  const currentSizeDisplay = document.getElementById('currentSize');
-  const themeToggle = document.getElementById('themeToggle');
+<script nonce={Astro.locals.nonce}>
+  console.log('🚀 Script tag executed immediately!');
+  
+  // Function to initialize when DOM is ready
+  function initFontSelector() {
+    console.log('🔥 Initializing font selector...');
+    
+    // Reading controls functionality
+    const letterBody = document.getElementById('letterBody');
+    const fontSelect = document.getElementById('fontSelect');
+    const decreaseSizeBtn = document.getElementById('decreaseSize');
+    const increaseSizeBtn = document.getElementById('increaseSize');
+    const currentSizeDisplay = document.getElementById('currentSize');
+    const themeToggle = document.getElementById('themeToggle');
+    
+    console.log('🔍 Elements found:', { letterBody, fontSelect, decreaseSizeBtn, increaseSizeBtn });
+    
+    // Verify elements are found
+    if (!fontSelect) {
+      console.log('❌ fontSelect element NOT found');
+      return; // Exit if no fontSelect found
+    }
+    
+    if (!letterBody) {
+      console.log('❌ letterBody element NOT found');
+      return; // Exit if no letterBody found
+    }
+    
+    console.log('✅ All elements found successfully');
 
-  let currentFontSize = 20;
+    let currentFontSize = 20;
 
   // Font selection
   fontSelect?.addEventListener('change', (e) => {
-    const target = e.target as HTMLSelectElement;
-    const fontClass = `font-${target.value}`;
+    console.log('🎯 Font selection event triggered!');
+    const target = e.target;
+    const fontValue = target.value;
+    console.log('🔤 Font changed to:', fontValue);
+    
     if (letterBody) {
-      letterBody.className = `letter-body ${fontClass}`;
+      // Define font families for each option
+      const fontMap = {
+        'lora': "'Lora', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Minion Pro', 'Hoefler Text', Georgia, serif",
+        'liberation': "'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', Georgia, serif",
+        'iowan': "'Iowan Old Style', 'New York', 'Apple Garamond', 'Baskerville', Georgia, serif",
+        'palatino': "'Palatino Linotype', 'Palatino', 'Book Antiqua', 'URW Palladio L', Georgia, serif",
+        'georgia': "Georgia, 'Nimbus Roman', 'Liberation Serif', serif",
+        'system-sans': "-apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', 'DejaVu Sans', system-ui, sans-serif",
+        'sf-pro': "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', system-ui, sans-serif"
+      };
+      
+      // Apply font directly via inline style (highest specificity)
+      const fontFamily = fontMap[fontValue] || fontMap['lora'];
+      letterBody.style.fontFamily = fontFamily;
+      console.log('Applied font-family:', fontFamily);
+      
+      // Force a style recalculation
+      letterBody.offsetHeight; // Trigger reflow
     }
-    localStorage.setItem('preferred-font', target.value);
+    localStorage.setItem('preferred-font', fontValue);
   });
 
   // Font size controls
@@ -695,15 +742,33 @@ function formatContent(content: string): string {
 
   window.addEventListener('scroll', onScroll, { passive: true });
 
-  // Initialize settings from localStorage
-  document.addEventListener('DOMContentLoaded', () => {
+    // Initialize settings from localStorage
+    console.log('DOM loaded, initializing font settings');
+    console.log('Elements found:', { fontSelect, letterBody });
+    
     // Font preference
     const savedFont = localStorage.getItem('preferred-font') || 'lora';
+    console.log('Saved font:', savedFont);
+    
     if (fontSelect) {
       fontSelect.value = savedFont;
-      const fontClass = `font-${savedFont}`;
+      console.log('Applying saved font:', savedFont);
       if (letterBody) {
-        letterBody.className = `letter-body ${fontClass}`;
+        // Define font families for each option (same as above)
+        const fontMap = {
+          'lora': "'Lora', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Minion Pro', 'Hoefler Text', Georgia, serif",
+          'liberation': "'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', Georgia, serif",
+          'iowan': "'Iowan Old Style', 'New York', 'Apple Garamond', 'Baskerville', Georgia, serif",
+          'palatino': "'Palatino Linotype', 'Palatino', 'Book Antiqua', 'URW Palladio L', Georgia, serif",
+          'georgia': "Georgia, 'Nimbus Roman', 'Liberation Serif', serif",
+          'system-sans': "-apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', 'DejaVu Sans', system-ui, sans-serif",
+          'sf-pro': "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', system-ui, sans-serif"
+        };
+        
+        // Apply font directly via inline style
+        const fontFamily = fontMap[savedFont] || fontMap['lora'];
+        letterBody.style.fontFamily = fontFamily;
+        console.log('Applied initial font-family:', fontFamily);
       }
     }
 
@@ -721,26 +786,34 @@ function formatContent(content: string): string {
       themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
     }
 
-  });
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + Plus to increase font size
+      if ((e.ctrlKey || e.metaKey) && e.key === '=') {
+        e.preventDefault();
+        if (currentFontSize < 24) {
+          currentFontSize += 2;
+          updateFontSize(currentFontSize);
+        }
+      }
+      
+      // Ctrl/Cmd + Minus to decrease font size
+      if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+        e.preventDefault();
+        if (currentFontSize > 14) {
+          currentFontSize -= 2;
+          updateFontSize(currentFontSize);
+        }
+      }
+    });
 
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    // Ctrl/Cmd + Plus to increase font size
-    if ((e.ctrlKey || e.metaKey) && e.key === '=') {
-      e.preventDefault();
-      if (currentFontSize < 24) {
-        currentFontSize += 2;
-        updateFontSize(currentFontSize);
-      }
-    }
-    
-    // Ctrl/Cmd + Minus to decrease font size
-    if ((e.ctrlKey || e.metaKey) && e.key === '-') {
-      e.preventDefault();
-      if (currentFontSize > 14) {
-        currentFontSize -= 2;
-        updateFontSize(currentFontSize);
-      }
-    }
-  });
+  } // End of initFontSelector function
+
+  // Try different approaches to ensure DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFontSelector);
+  } else {
+    // DOM is already loaded
+    initFontSelector();
+  }
 </script>
