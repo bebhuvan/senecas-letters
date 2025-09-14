@@ -551,7 +551,7 @@ import Footer from '../components/Footer.astro';
     if (enhancedIndex) return enhancedIndex;
     
     try {
-      const response = await fetch('/enhanced-index.json');
+      const response = await fetch('/api/enhanced-index.json');
       enhancedIndex = await response.json();
       console.log('[Library] Loaded enhanced index');
       return enhancedIndex;
