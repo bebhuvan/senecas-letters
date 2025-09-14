@@ -391,20 +391,7 @@ function formatContent(content: string): string {
     -ms-hyphens: auto;
   }
 
-  .letter-body :global(p:first-child) {
-    font-size: 1.15em;
-    color: var(--text-primary);
-    margin-bottom: 1.25em;
-  }
-
-  .letter-body :global(p:first-child::first-letter) {
-    float: left;
-    font-size: 3.75em;
-    line-height: 0.75;
-    margin: 0.05em 0.08em 0 0;
-    color: var(--terracotta);
-    font-weight: 400;
-  }
+  /* Removed special first paragraph styling for consistency */
 
   /* Letter Navigation */
   .letter-navigation {
