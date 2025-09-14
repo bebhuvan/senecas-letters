@@ -19,27 +19,53 @@
     };
   }
   
-  // Simple fuzzy search scoring
+  // Strict search scoring - only show results that actually contain the search terms
   function searchScore(text, query) {
     text = text.toLowerCase();
-    query = query.toLowerCase();
+    query = query.toLowerCase().trim();
+    
+    if (!query) return 0;
     
     // Exact match gets highest score
     if (text === query) return 1000;
     
-    // Contains exact phrase
-    if (text.includes(query)) return 100;
+    // Contains exact phrase (high priority)
+    if (text.includes(query)) return 500;
     
-    // All words present (AND search)
-    const words = query.split(/\s+/);
-    const allWordsPresent = words.every(word => text.includes(word));
-    if (allWordsPresent) return 50;
+    const words = query.split(/\s+/).filter(word => word.length > 0);
+    let score = 0;
+    let wordMatches = 0;
     
-    // Some words present (OR search)
-    const someWordsPresent = words.some(word => text.includes(word));
-    if (someWordsPresent) return 10;
+    // Each word must be found either as whole word or partial word
+    words.forEach(word => {
+      if (text.includes(word)) {
+        wordMatches++;
+        // Bonus for word boundaries (whole word matches)
+        const wordBoundaryRegex = new RegExp(`\\b${word}\\b`, 'i');
+        if (wordBoundaryRegex.test(text)) {
+          score += 30; // Whole word match
+        } else {
+          score += 15; // Partial word match
+        }
+      }
+    });
     
-    return 0;
+    // CRITICAL: Only return results if ALL words are found
+    if (wordMatches !== words.length) {
+      return 0; // No score if any word is missing
+    }
+    
+    // Bonus for multiple word matches (all words found)
+    if (words.length > 1) {
+      score += 100; // All words found bonus
+    }
+    
+    // Bonus for matches at the beginning of text
+    if (text.startsWith(query)) {
+      score += 200;
+    }
+    
+    return score;
   }
   
   function initializeSearch() {
@@ -61,8 +87,13 @@
       const theme = letter.querySelector('.letter-theme')?.textContent || '';
       const number = letter.querySelector('.letter-number')?.textContent || '';
       
-      // Create searchable text
-      const searchText = `${title} ${preview} ${theme} ${number}`.toLowerCase();
+      // Create simple searchable text without duplication
+      const searchText = [
+        title,
+        preview, 
+        theme,
+        number
+      ].join(' ').toLowerCase();
       
       return {
         element: letter,
@@ -104,6 +135,15 @@
         if (show && query) {
           score = searchScore(item.searchText, query);
           show = score > 0;
+          
+          // Debug logging for troubleshooting
+          if (query.toLowerCase() === 'bees' && score > 0) {
+            console.log(`[Search Debug] Found match for "${query}":`, {
+              title: item.title,
+              score: score,
+              searchText: item.searchText.substring(0, 200) + '...'
+            });
+          }
         }
         
         if (show) {

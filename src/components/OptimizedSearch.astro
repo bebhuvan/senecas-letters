@@ -1,0 +1,448 @@
+---
+// Optimized search component with full-text search and progressive loading
+---
+
+<!-- All styles are now in Layout.astro global styles -->
+
+<script is:inline>
+(function() {
+  let searchIndexLight = null;
+  let searchIndexFull = null;
+  let currentlyDisplayed = 20;
+  let isLoading = false;
+  let allLettersLoaded = false;
+  let searchActive = false;
+  let currentFilter = 'all';
+  let currentSort = 'number';
+  let lastSearchQuery = '';
+  let allLetters = [];
+  
+  // Debounce function
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  
+  // Load light index for initial display
+  async function loadLightIndex() {
+    if (searchIndexLight) return searchIndexLight;
+    
+    try {
+      const response = await fetch('/search-index-light.json');
+      searchIndexLight = await response.json();
+      allLetters = [...searchIndexLight.letters];
+      console.log(`[Search] Loaded light index with ${searchIndexLight.letters.length} letters`);
+      return searchIndexLight;
+    } catch (error) {
+      console.error('[Search] Failed to load light index:', error);
+      return null;
+    }
+  }
+  
+  // Load full index for advanced search (lazy loaded)
+  async function loadFullIndex() {
+    if (searchIndexFull) return searchIndexFull;
+    
+    try {
+      const response = await fetch('/search-index-full.json');
+      searchIndexFull = await response.json();
+      console.log(`[Search] Loaded full index with inverted index`);
+      return searchIndexFull;
+    } catch (error) {
+      console.error('[Search] Failed to load full index:', error);
+      return null;
+    }
+  }
+  
+  // Use server-side search API for complex queries
+  async function searchAPI(query, limit = 50, offset = 0) {
+    try {
+      const response = await fetch(`/api/search.json?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('[Search] API search failed:', error);
+      return null;
+    }
+  }
+  
+  // Client-side search scoring with full-text support
+  function searchScore(letter, query, fullIndex) {
+    const text = (letter.t + ' ' + letter.th).toLowerCase();
+    query = query.toLowerCase().trim();
+    
+    if (!query) return 0;
+    
+    let score = 0;
+    
+    // Exact title match
+    if (letter.t.toLowerCase() === query) return 1000;
+    
+    // Title contains query
+    if (letter.t.toLowerCase().includes(query)) score += 100;
+    
+    // Use inverted index for single words if available
+    if (fullIndex && fullIndex.index) {
+      const queryWords = query.split(/\s+/).filter(w => w.length > 2);
+      
+      queryWords.forEach(word => {
+        // Check inverted index
+        if (fullIndex.index[word] && fullIndex.index[word].includes(letter.n)) {
+          score += 50; // Found in inverted index
+        }
+      });
+    }
+    
+    // Check keywords if available
+    if (letter.k) {
+      const queryWords = query.split(/\s+/).filter(w => w.length > 2);
+      let keywordMatches = 0;
+      
+      queryWords.forEach(word => {
+        if (letter.k.some(keyword => keyword.includes(word))) {
+          keywordMatches++;
+        }
+      });
+      
+      if (keywordMatches > 0) {
+        score += (keywordMatches * 15); // Keyword matches
+      }
+    }
+    
+    // Theme match
+    if (letter.th.toLowerCase().includes(query)) {
+      score += 20;
+    }
+    
+    // Preview text match (if available)
+    if (letter.p && letter.p.toLowerCase().includes(query)) {
+      score += 30;
+    }
+    
+    return score;
+  }
+  
+  // Convert title to proper case
+  function toTitleCase(str) {
+    return str.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  // Create letter card HTML
+  function createLetterCard(letter) {
+    const cleanedTitle = toTitleCase(letter.t.replace(/\[\d+\]/g, '').trim());
+    const slug = cleanedTitle.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+    
+    const url = `/letters/${letter.n || letter.number}-${slug}`;
+    const date = `${65 - Math.floor(((letter.n || letter.number) - 1) / 12)} CE`;
+    const theme = letter.th || letter.theme;
+    const preview = letter.p || letter.preview;
+    const number = letter.n || letter.number;
+    const title = cleanedTitle;
+    
+    return `
+      <a href="${url}" class="letter-card" data-theme="${theme}" data-letter-id="${number}">
+        <h3 class="letter-title">${title}</h3>
+        <p class="letter-preview">${preview}</p>
+        <div class="letter-meta">
+          <span class="meta-item">📜 Letter ${number}</span>
+          <span class="meta-item">🏛️ ${theme}</span>
+          <span class="meta-item">📅 ${date}</span>
+        </div>
+      </a>
+    `;
+  }
+  
+  // Load more letters (progressive loading)
+  async function loadMoreLetters() {
+    if (isLoading || allLettersLoaded || searchActive) return;
+    
+    isLoading = true;
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (loadingIndicator) loadingIndicator.style.display = 'flex';
+    
+    const index = await loadLightIndex();
+    if (!index) {
+      isLoading = false;
+      return;
+    }
+    
+    const lettersGrid = document.getElementById('lettersGrid');
+    const fragment = document.createDocumentFragment();
+    
+    // Filter and sort letters
+    let lettersToShow = [...allLetters];
+    
+    // Apply filter
+    if (currentFilter !== 'all') {
+      lettersToShow = lettersToShow.filter(l => l.th === currentFilter);
+    }
+    
+    // Apply sort
+    lettersToShow.sort((a, b) => {
+      switch (currentSort) {
+        case 'title':
+          return a.t.localeCompare(b.t);
+        case 'theme':
+          return a.th.localeCompare(b.th);
+        default:
+          return a.n - b.n;
+      }
+    });
+    
+    // Load next batch
+    const endIndex = Math.min(currentlyDisplayed + 20, lettersToShow.length);
+    
+    for (let i = currentlyDisplayed; i < endIndex; i++) {
+      const div = document.createElement('div');
+      div.innerHTML = createLetterCard(lettersToShow[i]);
+      fragment.appendChild(div.firstElementChild);
+    }
+    
+    lettersGrid.appendChild(fragment);
+    currentlyDisplayed = endIndex;
+    
+    if (currentlyDisplayed >= lettersToShow.length) {
+      allLettersLoaded = true;
+    }
+    
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
+    isLoading = false;
+  }
+  
+  // Main search function
+  const performSearch = debounce(async function() {
+    const searchInput = document.getElementById('searchInput');
+    const query = searchInput.value.trim();
+    const lettersGrid = document.getElementById('lettersGrid');
+    const resultDiv = document.getElementById('resultCount');
+    
+    if (!query && lastSearchQuery === '') {
+      return; // No change
+    }
+    
+    lastSearchQuery = query;
+    
+    if (!query) {
+      // Reset to progressive loading mode
+      searchActive = false;
+      lettersGrid.innerHTML = '';
+      currentlyDisplayed = 0;
+      allLettersLoaded = false;
+      
+      // Load initial letters
+      const index = await loadLightIndex();
+      if (index) {
+        let lettersToShow = [...allLetters];
+        
+        // Apply filter
+        if (currentFilter !== 'all') {
+          lettersToShow = lettersToShow.filter(l => l.th === currentFilter);
+        }
+        
+        // Apply sort
+        lettersToShow.sort((a, b) => {
+          switch (currentSort) {
+            case 'title':
+              return a.t.localeCompare(b.t);
+            case 'theme':
+              return a.th.localeCompare(b.th);
+            default:
+              return a.n - b.n;
+          }
+        });
+        
+        const fragment = document.createDocumentFragment();
+        for (let i = 0; i < Math.min(20, lettersToShow.length); i++) {
+          const div = document.createElement('div');
+          div.innerHTML = createLetterCard(lettersToShow[i]);
+          fragment.appendChild(div.firstElementChild);
+        }
+        lettersGrid.appendChild(fragment);
+        currentlyDisplayed = 20;
+      }
+      
+      if (resultDiv) resultDiv.textContent = '';
+      return;
+    }
+    
+    searchActive = true;
+    
+    // For complex queries (multiple words), use server-side search
+    const queryWords = query.split(/\s+/).filter(w => w.length > 2);
+    
+    if (queryWords.length > 1) {
+      // Use server-side search for multi-word queries
+      const searchResults = await searchAPI(query, 100);
+      
+      if (searchResults && searchResults.results) {
+        lettersGrid.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+        
+        searchResults.results.forEach(letter => {
+          const div = document.createElement('div');
+          div.innerHTML = createLetterCard(letter);
+          fragment.appendChild(div.firstElementChild);
+        });
+        
+        lettersGrid.appendChild(fragment);
+        
+        if (resultDiv) {
+          resultDiv.textContent = `Found ${searchResults.total} letter${searchResults.total !== 1 ? 's' : ''} matching "${query}"`;
+        }
+      }
+    } else {
+      // For simple queries, use client-side search with full index
+      const fullIndex = await loadFullIndex();
+      const index = fullIndex || (await loadLightIndex());
+      
+      if (!index) return;
+      
+      // Score and filter letters
+      const results = [];
+      index.letters.forEach(letter => {
+        // Apply theme filter
+        if (currentFilter !== 'all' && letter.th !== currentFilter) {
+          return;
+        }
+        
+        const score = searchScore(letter, query, fullIndex);
+        if (score > 0) {
+          results.push({ letter, score });
+        }
+      });
+      
+      // Sort by score
+      results.sort((a, b) => b.score - a.score);
+      
+      // Update grid with results
+      lettersGrid.innerHTML = '';
+      const fragment = document.createDocumentFragment();
+      results.forEach(({ letter }) => {
+        const div = document.createElement('div');
+        div.innerHTML = createLetterCard(letter);
+        fragment.appendChild(div.firstElementChild);
+      });
+      lettersGrid.appendChild(fragment);
+      
+      // Update result count
+      if (resultDiv) {
+        resultDiv.textContent = `Found ${results.length} letter${results.length !== 1 ? 's' : ''} matching "${query}"`;
+      }
+      
+      // Debug logging for "bees"
+      if (query.toLowerCase() === 'bees') {
+        console.log('[Search Debug] Searching for "bees"');
+        console.log('[Search Debug] Full index available:', !!fullIndex);
+        console.log('[Search Debug] Results found:', results.length);
+        if (fullIndex && fullIndex.index && fullIndex.index.bees) {
+          console.log('[Search Debug] Inverted index for "bees":', fullIndex.index.bees);
+        }
+      }
+    }
+  }, 300); // 300ms debounce for better UX
+  
+  // Handle filter change
+  function handleFilterChange(filter) {
+    currentFilter = filter;
+    currentlyDisplayed = 0;
+    allLettersLoaded = false;
+    
+    const lettersGrid = document.getElementById('lettersGrid');
+    lettersGrid.innerHTML = '';
+    
+    if (!searchActive) {
+      loadMoreLetters();
+    } else {
+      performSearch();
+    }
+  }
+  
+  // Handle sort change
+  function handleSortChange(sortBy) {
+    currentSort = sortBy;
+    currentlyDisplayed = 0;
+    allLettersLoaded = false;
+    
+    const lettersGrid = document.getElementById('lettersGrid');
+    lettersGrid.innerHTML = '';
+    
+    if (!searchActive) {
+      loadMoreLetters();
+    } else {
+      performSearch();
+    }
+  }
+  
+  // Infinite scroll
+  function handleScroll() {
+    if (searchActive) return;
+    
+    const scrollHeight = document.documentElement.scrollHeight;
+    const scrollTop = window.scrollY;
+    const clientHeight = window.innerHeight;
+    
+    if (scrollTop + clientHeight >= scrollHeight - 500) {
+      loadMoreLetters();
+    }
+  }
+  
+  // Initialize
+  function init() {
+    const searchInput = document.getElementById('searchInput');
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const sortSelect = document.getElementById('sortSelect');
+    
+    if (searchInput) {
+      searchInput.addEventListener('input', performSearch);
+      searchInput.addEventListener('keyup', function(e) {
+        if (e.key === 'Escape') {
+          this.value = '';
+          performSearch();
+        }
+      });
+    }
+    
+    // Filter tabs
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        filterTabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        handleFilterChange(this.getAttribute('data-filter') || 'all');
+      });
+    });
+    
+    // Sort select
+    if (sortSelect) {
+      sortSelect.addEventListener('change', function() {
+        handleSortChange(this.value);
+      });
+    }
+    
+    // Add infinite scroll
+    window.addEventListener('scroll', debounce(handleScroll, 100));
+    
+    // Preload light index
+    loadLightIndex();
+    
+    console.log('[Search] Optimized search initialized');
+  }
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>

@@ -1,0 +1,478 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import OptimizedSearch from '../components/OptimizedSearch.astro';
+import lettersData from '../data/all_letters.json';
+
+// Convert text to title case (capitalizing each word properly)
+function toTitleCase(text: string): string {
+  return text.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+// Clean title by removing footnote references like [1], [2], etc. and convert to title case
+function cleanTitle(title: string): string {
+  return toTitleCase(title.replace(/\[\d+\]/g, '').trim());
+}
+
+// SEO-friendly slug generator
+function createSlug(title: string): string {
+  return title.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .trim();
+}
+
+// Process the actual letters data
+const letters = lettersData.letters.map((letter) => {
+  const cleanedTitle = cleanTitle(letter.title);
+  const slug = createSlug(cleanedTitle);
+  
+  return {
+    id: letter.number,
+    number: letter.number.toString(),
+    displayNumber: letter.number.toString(), // Use regular numbers instead of roman
+    title: cleanedTitle, // Clean footnote references
+    theme: getLetterTheme(letter.number),
+    preview: letter.content.substring(0, 800).replace(/\[\d+\]/g, '') + '...', // Longer preview for better search
+    date: `${65 - Math.floor((letter.number - 1) / 12)} CE`, // Approximate dating
+    url: `/letters/${letter.number}-${slug}` // SEO-friendly URL
+  };
+});
+
+function toRoman(num: number): string {
+  const romanNumerals = [
+    ['C', 100], ['XC', 90], ['L', 50], ['XL', 40],
+    ['X', 10], ['IX', 9], ['V', 5], ['IV', 4], ['I', 1]
+  ];
+  let result = '';
+  for (const [roman, value] of romanNumerals) {
+    while (num >= value) {
+      result += roman;
+      num -= value;
+    }
+  }
+  return result;
+}
+
+function getLetterTheme(num: number): string {
+  const themes = ["Time & Life", "Learning", "Friendship", "Death", "Philosophy", "Knowledge", "Society", "Solitude", "Virtue", "Self", "Character", "Aging"];
+  return themes[num % themes.length];
+}
+---
+
+<Layout title="Library - Letters to Lucilius">
+  <Header currentPath="/library" />
+  
+  <main>
+    <!-- Library Header -->
+    <section class="library-header">
+      <div class="container">
+        <div class="header-content">
+          <h1>Complete Library</h1>
+          <p class="subtitle">All 124 letters from Seneca to Lucilius, searchable and organized</p>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="search-container">
+          <div class="search-wrapper">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search letters by title, theme, or content...">
+            <button class="search-button">
+              <span class="search-icon">🔍</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="filters">
+      <div class="container">
+        <div id="resultCount" class="result-count"></div>
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all">All Letters</button>
+          <button class="filter-tab" data-filter="Time & Life">Time & Life</button>
+          <button class="filter-tab" data-filter="Philosophy">Philosophy</button>
+          <button class="filter-tab" data-filter="Friendship">Friendship</button>
+          <button class="filter-tab" data-filter="Death">Death</button>
+          <button class="filter-tab" data-filter="Virtue">Virtue</button>
+        </div>
+        
+        <div class="sort-controls">
+          <select id="sortSelect" class="sort-select">
+            <option value="number">By Number</option>
+            <option value="title">By Title</option>
+            <option value="theme">By Theme</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Letters Grid -->
+    <section class="letters-section">
+      <div class="container">
+        <div class="letters-grid" id="lettersGrid">
+          {letters.map((letter) => (
+            <a href={letter.url} class="letter-card" data-theme={letter.theme}>
+              <div class="card-header">
+                <div class="letter-info">
+                  <span class="letter-number" data-number={letter.number}>Letter {letter.displayNumber}</span>
+                  <span class="letter-theme">{letter.theme}</span>
+                </div>
+                <span class="letter-date">{letter.date}</span>
+              </div>
+              
+              <h3 class="letter-title">{letter.title}</h3>
+              <p class="letter-preview">{letter.preview}</p>
+              
+              <div class="card-footer">
+                <span class="read-link">Read Letter →</span>
+              </div>
+            </a>
+          ))}
+        </div>
+        
+        <!-- Load More -->
+        <div class="load-more" id="loadMore" style="display: none;">
+          <button class="load-more-btn">Load More Letters</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .library-header {
+    padding: 4rem 0;
+    background: var(--surface);
+    text-align: center;
+  }
+
+  .header-content {
+    margin-bottom: 3rem;
+  }
+
+  .library-header h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .library-header .subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  /* Search */
+  .search-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--background);
+    border: 2px solid var(--divider);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+  }
+
+  .search-wrapper:focus-within {
+    border-color: var(--terracotta);
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 1.25rem 1.5rem;
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+  }
+
+  .search-input:focus {
+    outline: none;
+  }
+
+  .search-input::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .search-button {
+    padding: 1.25rem 1.5rem;
+    background: var(--terracotta);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .search-button:hover {
+    background: #b8561a;
+  }
+
+  .search-icon {
+    font-size: 1rem;
+  }
+
+  /* Filters */
+  .filters {
+    padding: 2rem 0;
+    background: var(--background);
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .filters .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .filter-tab {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: 1px solid var(--divider);
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .filter-tab:hover,
+  .filter-tab.active {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+    color: white;
+  }
+
+  .sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .sort-select {
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--divider);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .sort-select:focus {
+    outline: none;
+    border-color: var(--terracotta);
+  }
+
+  /* Letters Section */
+  .letters-section {
+    padding: 4rem 0 6rem;
+    background: var(--background);
+  }
+
+  .letters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+  }
+
+  .letter-card {
+    background: var(--surface);
+    padding: 2rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Removed hover effects for cleaner look */
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .letter-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .letter-number {
+    color: var(--terracotta);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .letter-theme {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.75rem;
+    background: var(--terracotta-light);
+    border-radius: 12px;
+    align-self: flex-start;
+  }
+
+  .letter-date {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+  }
+
+  .letter-title {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+  }
+
+  .letter-preview {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .read-link {
+    color: var(--terracotta);
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.025em;
+    transition: all 0.3s ease;
+  }
+
+  /* Removed hover effect on read link */
+
+  /* Load More */
+  .load-more {
+    text-align: center;
+  }
+
+  .load-more-btn {
+    padding: 1rem 2.5rem;
+    background: var(--surface);
+    border: 2px solid var(--terracotta);
+    color: var(--terracotta);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .load-more-btn:hover {
+    background: var(--terracotta);
+    color: white;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .letters-grid {
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .library-header {
+      padding: 3rem 0;
+    }
+
+    .library-header h1 {
+      font-size: 2.5rem;
+    }
+
+    .filters .container {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1.5rem;
+    }
+
+    .filter-tabs {
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .filter-tab {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .letters-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .letter-card {
+      padding: 1.5rem;
+    }
+
+    .search-input {
+      padding: 1rem 1.25rem;
+    }
+
+    .search-button {
+      padding: 1rem 1.25rem;
+    }
+  }
+</style>
+
+<style>
+  .result-count {
+    padding: 0.5rem 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+</style>
+
+<OptimizedSearch />

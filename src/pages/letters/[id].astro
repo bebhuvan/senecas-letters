@@ -188,14 +188,14 @@ function formatContent(content: string): string {
             {prevLetter && (
               <a href={getLetterUrl(prevLetter)} class="nav-link prev">
                 <span class="nav-direction">← Previous</span>
-                <span class="nav-title">Letter {prevLetter.roman_number || toRoman(prevLetter.number)}: {prevLetter.title}</span>
+                <span class="nav-title">Letter {prevLetter.roman_number || toRoman(prevLetter.number)}: {cleanTitle(prevLetter.title).toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
               </a>
             )}
             
             {nextLetter && (
               <a href={getLetterUrl(nextLetter)} class="nav-link next">
                 <span class="nav-direction">Next →</span>
-                <span class="nav-title">Letter {nextLetter.roman_number || toRoman(nextLetter.number)}: {nextLetter.title}</span>
+                <span class="nav-title">Letter {nextLetter.roman_number || toRoman(nextLetter.number)}: {cleanTitle(nextLetter.title).toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
               </a>
             )}
           </div>
@@ -215,7 +215,7 @@ function formatContent(content: string): string {
               .map(relatedLetter => (
                 <a href={getLetterUrl(relatedLetter)} class="related-card">
                   <div class="related-number">Letter {relatedLetter.roman_number || toRoman(relatedLetter.number)}</div>
-                  <h4 class="related-letter-title">{relatedLetter.title.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                  <h4 class="related-letter-title">{cleanTitle(relatedLetter.title).toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</h4>
                   <p class="related-excerpt">{relatedLetter.content.split('\n\n')[0].replace(/^\d+\.\s+/, '').substring(0, 120)}...</p>
                 </a>
               ))
@@ -384,7 +384,7 @@ function formatContent(content: string): string {
   }
 
   .letter-body :global(p) {
-    margin-bottom: 1.8em;
+    margin-bottom: 1.5em;
     text-align: justify;
     hyphens: auto;
     -webkit-hyphens: auto;
@@ -392,15 +392,16 @@ function formatContent(content: string): string {
   }
 
   .letter-body :global(p:first-child) {
-    font-size: 1.1em;
-    color: var(--text-secondary);
+    font-size: 1.15em;
+    color: var(--text-primary);
+    margin-bottom: 1.25em;
   }
 
   .letter-body :global(p:first-child::first-letter) {
     float: left;
-    font-size: 3.5em;
-    line-height: 0.8;
-    margin: 0.1em 0.1em 0 0;
+    font-size: 3.75em;
+    line-height: 0.75;
+    margin: 0.05em 0.08em 0 0;
     color: var(--terracotta);
     font-weight: 400;
   }
@@ -426,14 +427,7 @@ function formatContent(content: string): string {
     background: var(--surface);
     border: 1px solid transparent;
     border-radius: 8px;
-    transition: all 0.3s ease;
     display: block;
-  }
-
-  .nav-link:hover {
-    background: var(--terracotta-light);
-    border-color: var(--subtle-border);
-    transform: translateY(-2px);
   }
 
   .nav-link.prev {
@@ -508,14 +502,7 @@ function formatContent(content: string): string {
     background: var(--surface);
     border: 1px solid var(--divider);
     border-radius: 8px;
-    transition: all 0.2s ease;
     display: block;
-  }
-
-  .related-card:hover {
-    background: var(--terracotta-light);
-    border-color: var(--terracotta);
-    transform: translateY(-1px);
   }
 
   .related-number {
@@ -599,6 +586,10 @@ function formatContent(content: string): string {
     .letter-body {
       font-size: 16px;
       line-height: 1.7;
+    }
+
+    .letter-body :global(p) {
+      margin-bottom: 1.4em;
     }
 
 

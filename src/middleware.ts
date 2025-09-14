@@ -8,7 +8,7 @@ function generateNonce(): string {
 }
 
 export const onRequest = defineMiddleware((context, next) => {
-  // TEMPORARY: Disable CSP in development for debugging
+  // Skip CSP in development
   if (import.meta.env.DEV) {
     return next();
   }
@@ -31,7 +31,7 @@ export const onRequest = defineMiddleware((context, next) => {
     // Strict Content Security Policy with nonce, strict-dynamic, and backward compatibility
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' 'sha256-hNa9rKEnrYPp05vHw8SL7olHPePrhcjQPqsIl8WAMps=' 'sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==' 'strict-dynamic' 'unsafe-inline' static.cloudflareinsights.com`, // Nonce + hashes + strict-dynamic + backward compatibility
+      `script-src 'self' 'nonce-${nonce}' 'sha256-hNa9rKEnrYPp05vHw8SL7olHPePrhcjQPqsIl8WAMps=' 'sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==' 'sha256-zCyF7/LBLIR3ixUl5+zk1LS6NeXpWplM7FGuTuH8RKw=' 'sha256-ilR9cy+njuY6tAHwt4BGcjaErkeuD87svCjby0Zv+TM=' 'sha256-BlqvHhJZQH1ERDIcdDqmWSfwWpmoN865BFzfzxLHs3M=' 'sha256-jW6/g4aKAC/JHi3ESCAPCV0KECH0rzEP4S9mkwkOYXM=' 'strict-dynamic' 'unsafe-inline' static.cloudflareinsights.com`, // Nonce + hashes + strict-dynamic + backward compatibility
       "style-src 'self' 'unsafe-inline' fonts.googleapis.com", // Still need unsafe-inline for Astro styles
       "font-src 'self' fonts.gstatic.com", // Allow Google Fonts
       "img-src 'self' data:", // Allow self and data URLs
