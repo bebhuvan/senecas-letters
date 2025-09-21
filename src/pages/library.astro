@@ -574,6 +574,58 @@ import Footer from '../components/Footer.astro';
     length: '',
     theme: ''
   };
+  let searchTokens = [];
+  let searchPhrase = '';
+  const STOP_WORDS = new Set([
+    'the','and','for','with','from','that','this','your','have','will','are','was','were','his','her','their','you','but','not','our','all'
+  ]);
+
+  function tokenizeSearch(value) {
+    return value
+      .toLowerCase()
+      .split(/[\s,]+/)
+      .map(token => token.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ''))
+      .filter(token => token.length > 0 && !STOP_WORDS.has(token));
+  }
+
+  function scoreLetter(letter) {
+    if (!searchPhrase) return 0;
+
+    const haystack = [
+      letter.t,
+      letter.th,
+      letter.p || '',
+      letter.timeline ? `${letter.timeline.year} ${letter.timeline.season}` : ''
+    ].join(' ').toLowerCase();
+
+    const phraseMatch = haystack.includes(searchPhrase);
+    let score = phraseMatch ? 60 : 0;
+    let matched = phraseMatch;
+
+    const tokensToCheck = searchTokens.length > 0 ? searchTokens : searchPhrase.split(/\s+/).filter(Boolean);
+
+    tokensToCheck.forEach(token => {
+      if (!token) return;
+
+      if (letter.n && (letter.n.toString() === token || letter.n.toString() === searchPhrase)) {
+        score += 100;
+        matched = true;
+        return;
+      }
+
+      if (haystack.includes(token)) {
+        score += 25;
+        matched = true;
+      }
+
+      if (letter.k && letter.k.some(keyword => keyword.includes(token))) {
+        score += 20;
+        matched = true;
+      }
+    });
+
+    return matched ? score : -1;
+  }
   
   // Load enhanced index
   async function loadEnhancedIndex() {
@@ -636,14 +688,16 @@ import Footer from '../components/Footer.astro';
   function filterLetters(letters) {
     return letters.filter(letter => {
       // Search filter
-      if (currentFilters.search) {
-        const searchTerm = currentFilters.search.toLowerCase();
-        const searchText = `${letter.t} ${letter.th}`.toLowerCase();
-        if (!searchText.includes(searchTerm) && letter.n.toString() !== searchTerm) {
+      if (searchPhrase) {
+        const score = scoreLetter(letter);
+        if (score <= 0) {
           return false;
         }
+        letter._score = score;
+      } else {
+        letter._score = 0;
       }
-      
+
       // Difficulty filter
       if (currentFilters.difficulty && letter.meta?.difficulty !== currentFilters.difficulty) {
         return false;
@@ -719,6 +773,9 @@ import Footer from '../components/Footer.astro';
       );
       
       const filteredCollectionLetters = filterLetters(collectionLetters);
+      if (searchPhrase) {
+        filteredCollectionLetters.sort((a, b) => (b._score || 0) - (a._score || 0));
+      }
       
       if (filteredCollectionLetters.length === 0 && currentFilters.search) {
         return; // Skip empty collections when searching
@@ -753,6 +810,9 @@ import Footer from '../components/Footer.astro';
     if (!container) return;
     
     const filteredLetters = filterLetters(index.letters);
+    if (searchPhrase) {
+      filteredLetters.sort((a, b) => (b._score || 0) - (a._score || 0));
+    }
     
     const html = filteredLetters.map(letter => createLetterCard(letter)).join('');
     container.innerHTML = html || '<div class="loading-message">No letters match your filters</div>';
@@ -813,6 +873,9 @@ import Footer from '../components/Footer.astro';
     currentFilters.difficulty = document.getElementById('difficultyFilter')?.value || '';
     currentFilters.length = document.getElementById('lengthFilter')?.value || '';
     currentFilters.theme = document.getElementById('themeFilter')?.value || '';
+
+    searchPhrase = currentFilters.search.trim().toLowerCase();
+    searchTokens = tokenizeSearch(currentFilters.search);
     
     renderCurrentView();
   }
