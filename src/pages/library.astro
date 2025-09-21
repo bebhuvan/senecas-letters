@@ -517,6 +517,12 @@ import Footer from '../components/Footer.astro';
       flex-direction: column;
     }
 
+    .timeline-container {
+      /* Add breathing room so the marker stays visible */
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+
     .timeline-letters {
       grid-template-columns: 1fr;
       padding-left: 2rem;
@@ -524,6 +530,11 @@ import Footer from '../components/Footer.astro';
 
     .timeline-header {
       padding-left: 2rem;
+    }
+
+    .timeline-marker {
+      /* Shift the dot slightly inward on small screens */
+      margin-left: 0.25rem;
     }
 
     .letters-grid {
