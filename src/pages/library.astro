@@ -280,6 +280,18 @@ import Footer from '../components/Footer.astro';
   /* Timeline View */
   .timeline-container {
     position: relative;
+    padding-left: 2.5rem;
+  }
+
+  .timeline-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 1rem;
+    width: 2px;
+    background: linear-gradient(180deg, var(--terracotta), transparent);
+    opacity: 0.4;
   }
 
   .timeline-period {
@@ -287,60 +299,53 @@ import Footer from '../components/Footer.astro';
     position: relative;
   }
 
+  .timeline-period::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 1.1rem;
+    width: 6px;
+    height: 26px;
+    border-radius: 999px;
+    background: var(--terracotta);
+    transform: translateX(-50%);
+    box-shadow: 0 0 0 3px var(--background);
+  }
+
   .timeline-header {
-    position: relative;
     display: flex;
     align-items: center;
     gap: 1rem;
     margin-bottom: 2rem;
-    padding-left: 3.25rem;
+    padding-left: 1rem;
   }
 
-  .timeline-marker {
-    position: absolute;
-    left: 1.5rem;
-    top: 50%;
-    width: 20px;
-    height: 20px;
-    background: var(--terracotta);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 0 3px var(--background);
-    display: flex;
+  .timeline-info h3 {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-  }
-
-  .timeline-marker::after {
-    content: '';
-    width: 8px;
-    height: 8px;
-    background: white;
-    border-radius: 50%;
+    font-size: 1.2rem;
+    color: var(--terracotta);
+    background: var(--terracotta-light);
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-family: 'Crimson Text', Georgia, serif;
+    letter-spacing: 0.02em;
   }
 
   .timeline-info {
     flex: 1;
   }
 
-  .timeline-info h3 {
-    font-size: 1.5rem;
-    color: var(--text-primary);
-    margin-bottom: 0.25rem;
-    font-family: 'Crimson Text', Georgia, serif;
-    text-transform: none;
-  }
-
   .timeline-info p {
     color: var(--text-muted);
     font-size: 0.9rem;
+    margin-top: 0.35rem;
   }
 
   .timeline-letters {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
-    padding-left: 3rem;
   }
 
   /* Collections View */
@@ -527,16 +532,10 @@ import Footer from '../components/Footer.astro';
 
     .timeline-letters {
       grid-template-columns: 1fr;
-      padding-left: 2rem;
     }
 
     .timeline-header {
-      padding-left: 2.75rem;
-    }
-
-    .timeline-marker {
-      left: 1.1rem;
-      transform: translate(-50%, -50%);
+      padding-left: 0.75rem;
     }
 
     .letters-grid {
@@ -545,6 +544,15 @@ import Footer from '../components/Footer.astro';
 
     .view-toggle {
       justify-content: center;
+    }
+
+    .timeline-container {
+      padding-left: 2rem;
+    }
+
+    .timeline-container::before,
+    .timeline-period::before {
+      left: 0.85rem;
     }
   }
 </style>
@@ -676,7 +684,6 @@ import Footer from '../components/Footer.astro';
       html += `
         <div class="timeline-period">
           <div class="timeline-header">
-            <div class="timeline-marker"></div>
             <div class="timeline-info">
               <h3>${period.year}</h3>
               <p>${period.season} • ${period.letters.length} letters</p>
