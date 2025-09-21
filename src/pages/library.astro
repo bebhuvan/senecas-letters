@@ -277,81 +277,50 @@ import Footer from '../components/Footer.astro';
     font-style: italic;
   }
 
-  /* Timeline View */
+  /* Timeline View - Redesigned for minimal elegance */
   .timeline-container {
-    position: relative;
-    padding: 1.75rem 0 0 2.75rem;
-  }
-
-  .timeline-container::before {
-    content: '';
-    position: absolute;
-    top: 0.5rem;
-    bottom: 0;
-    left: 1.25rem;
-    width: 2px;
-    background: linear-gradient(180deg, var(--terracotta), rgba(200, 99, 46, 0.08));
-    opacity: 0.5;
+    max-width: 1000px;
+    margin: 0 auto;
   }
 
   .timeline-period {
-    position: relative;
-    margin-bottom: 3.5rem;
-    padding-left: 0.5rem;
+    margin-bottom: 4rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--divider);
   }
 
   .timeline-period:last-child {
+    border-bottom: none;
     margin-bottom: 0;
-    padding-bottom: 1rem;
-  }
-
-  .timeline-period::before {
-    content: '';
-    position: absolute;
-    left: 1.25rem;
-    top: 0.9rem;
-    width: 8px;
-    height: 24px;
-    border-radius: 999px;
-    background: var(--terracotta);
-    transform: translateX(-50%);
-    box-shadow: 0 0 0 3px var(--background);
+    padding-bottom: 0;
   }
 
   .timeline-header {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    margin-bottom: 1.5rem;
-    padding-left: 1rem;
+    margin-bottom: 2rem;
+    text-align: center;
   }
 
   .timeline-info h3 {
-    display: inline-flex;
-    align-items: center;
-    font-size: 1.25rem;
-    color: var(--terracotta);
-    background: var(--terracotta-light);
-    padding: 0.4rem 1rem;
-    border-radius: 999px;
-    font-family: 'Crimson Text', Georgia, serif;
-    letter-spacing: 0.015em;
-  }
-
-  .timeline-info {
-    flex: 1;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', serif;
+    letter-spacing: -0.01em;
   }
 
   .timeline-info p {
     color: var(--text-muted);
-    font-size: 0.95rem;
-    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.02em;
   }
 
   .timeline-letters {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
   }
 
   /* Collections View */
@@ -538,10 +507,19 @@ import Footer from '../components/Footer.astro';
 
     .timeline-letters {
       grid-template-columns: 1fr;
+      gap: 1.25rem;
     }
 
     .timeline-header {
-      padding-left: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .timeline-info h3 {
+      font-size: 1.25rem;
+    }
+
+    .timeline-period {
+      margin-bottom: 3rem;
     }
 
     .letters-grid {
@@ -550,15 +528,6 @@ import Footer from '../components/Footer.astro';
 
     .view-toggle {
       justify-content: center;
-    }
-
-    .timeline-container {
-      padding-left: 2.25rem;
-    }
-
-    .timeline-container::before,
-    .timeline-period::before {
-      left: 1.05rem;
     }
   }
 </style>

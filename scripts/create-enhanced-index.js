@@ -102,12 +102,48 @@ function getTimelinePeriod(letterNumber) {
   return timelinePeriods.find(period => period.letters.includes(letterNumber));
 }
 
+// Extract keywords from text for search
+function extractKeywords(text) {
+  // Common words to exclude
+  const stopWords = new Set([
+    'the', 'is', 'at', 'which', 'on', 'a', 'an', 'as', 'are', 'was', 'were',
+    'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+    'could', 'should', 'may', 'might', 'must', 'can', 'of', 'to', 'in', 'for',
+    'with', 'by', 'from', 'about', 'into', 'through', 'during', 'before', 'after',
+    'and', 'or', 'but', 'if', 'then', 'else', 'when', 'where', 'how', 'all',
+    'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'only',
+    'own', 'same', 'so', 'than', 'too', 'very', 'just', 'that', 'this', 'these'
+  ]);
+
+  // Convert to lowercase and extract words
+  const words = text.toLowerCase()
+    .replace(/\[\d+\]/g, '') // Remove footnote references
+    .replace(/[^a-z0-9\s]/g, ' ') // Keep only letters and numbers
+    .split(/\s+/)
+    .filter(word => word.length > 2 && !stopWords.has(word)); // Keep meaningful words
+  
+  // Count word frequency
+  const wordFreq = {};
+  words.forEach(word => {
+    wordFreq[word] = (wordFreq[word] || 0) + 1;
+  });
+  
+  // Get top keywords by frequency
+  const keywords = Object.entries(wordFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 30) // Keep top 30 keywords per letter
+    .map(([word]) => word);
+  
+  return keywords;
+}
+
 // Create enhanced search index
 const enhancedIndex = {
   letters: lettersData.letters.map((letter) => {
     const meta = getLetterMeta(letter.number, letter.content);
     const collections = getLetterCollections(letter.number);
     const timelinePeriod = getTimelinePeriod(letter.number);
+    const keywords = extractKeywords(letter.content);
     
     const preview = letter.content
       .substring(0, 400)
@@ -120,6 +156,7 @@ const enhancedIndex = {
       t: letter.title.replace(/\[\d+\]/g, '').trim(),
       p: preview,
       th: getLetterTheme(letter.number),
+      k: keywords, // Add keywords for search
       meta: meta,
       collections: collections,
       timeline: timelinePeriod ? {
