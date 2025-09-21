@@ -288,31 +288,39 @@ import Footer from '../components/Footer.astro';
   }
 
   .timeline-header {
+    position: relative;
     display: flex;
     align-items: center;
+    gap: 1rem;
     margin-bottom: 2rem;
-    padding-left: 3rem;
+    padding-left: 3.25rem;
   }
 
   .timeline-marker {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
     width: 20px;
     height: 20px;
     background: var(--terracotta);
     border-radius: 50%;
-    margin-right: 1rem;
-    position: relative;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 0 3px var(--background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .timeline-marker::after {
     content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 8px;
     height: 8px;
     background: white;
     border-radius: 50%;
+  }
+
+  .timeline-info {
+    flex: 1;
   }
 
   .timeline-info h3 {
@@ -523,12 +531,12 @@ import Footer from '../components/Footer.astro';
     }
 
     .timeline-header {
-      padding-left: 2rem;
+      padding-left: 2.75rem;
     }
 
     .timeline-marker {
-      /* Gently nudge the dot inward without shrinking card width */
-      transform: translateX(0.25rem);
+      left: 1.1rem;
+      transform: translate(-50%, -50%);
     }
 
     .letters-grid {
