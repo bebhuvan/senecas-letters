@@ -9,7 +9,6 @@ Sitemap: https://seneca.ink/sitemap.xml`;
   return new Response(robotsTxt, {
     headers: {
       'Content-Type': 'text/plain',
-      'Cache-Control': 'public, max-age=86400',
     },
   });
 }

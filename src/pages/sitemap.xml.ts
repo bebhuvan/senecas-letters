@@ -35,7 +35,6 @@ ${allPages.map(p => `  <url>
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml',
-      'Cache-Control': 'public, max-age=86400',
     },
   });
 };

@@ -28,6 +28,24 @@ export const onRequest = defineMiddleware((context, next) => {
       headers: new Headers(response.headers)
     });
 
+    // Cache headers based on content type
+    const url = new URL(context.request.url);
+    const path = url.pathname;
+
+    if (path.startsWith('/api/')) {
+      // API JSON endpoints: cache 1 day, serve stale for 1 week
+      newResponse.headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    } else if (path === '/sitemap.xml' || path === '/robots.txt') {
+      // Sitemap/robots: cache 1 day
+      newResponse.headers.set('Cache-Control', 'public, max-age=86400');
+    } else if (path.startsWith('/letters/')) {
+      // Letter pages: content rarely changes, cache 1 hour, serve stale for 1 day
+      newResponse.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+    } else {
+      // Other HTML pages (home, library, about): cache 10 min, serve stale for 1 hour
+      newResponse.headers.set('Cache-Control', 'public, max-age=600, stale-while-revalidate=3600');
+    }
+
     // Strict Content Security Policy with nonce, strict-dynamic, and backward compatibility
     const csp = [
       "default-src 'self'",
