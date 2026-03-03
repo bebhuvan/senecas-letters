@@ -5,7 +5,7 @@ import cloudflare from '@astrojs/cloudflare';
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
-  site: 'https://senecas-letters.r-bhuvanesh2007.workers.dev',
+  site: 'https://seneca.ink',
   adapter: cloudflare(),
   image: {
     service: {
@@ -14,14 +14,5 @@ export default defineConfig({
   },
   build: {
     inlineStylesheets: 'always',
-  },
-  vite: {
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: {},
-        },
-      },
-    },
   },
 });

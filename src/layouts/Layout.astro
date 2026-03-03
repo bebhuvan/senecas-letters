@@ -5,690 +5,309 @@ export interface Props {
   ogImage?: string;
   ogType?: string;
   canonical?: string;
+  jsonLd?: Record<string, unknown>;
 }
 
-const { 
-  title, 
-  description = "Seneca's Letters to Lucilius - Timeless wisdom for modern life", 
+const {
+  title,
+  description = "Seneca's Letters to Lucilius — Timeless wisdom for modern life",
   ogImage = "/og-default.png",
   ogType = "website",
-  canonical 
+  canonical,
+  jsonLd
 } = Astro.props;
 
 const canonicalURL = canonical ? new URL(canonical, Astro.site) : Astro.url;
+
+const defaultJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Seneca's Letters to Lucilius",
+  "url": "https://seneca.ink",
+  "description": "124 philosophical letters on virtue, mortality, friendship, and the art of living well.",
+  "author": {
+    "@type": "Person",
+    "name": "Lucius Annaeus Seneca",
+    "birthDate": "-0004",
+    "deathDate": "0065"
+  }
+};
+
+const structuredData = jsonLd || defaultJsonLd;
 ---
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Performance optimizations -->
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" as="style" id="font-preload">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet"></noscript>
-    
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tIFBldGFscyAtLT4KICA8ZWxsaXBzZSBjeD0iMTYiIGN5PSI4IiByeD0iMS41IiByeT0iNiIgZmlsbD0iI2M4NjMyZSIgb3BhY2l0eT0iMC45Ii8+CiAgPGVsbGlwc2UgY3g9IjI0IiBjeT0iMTYiIHJ4PSI2IiByeT0iMS41IiBmaWxsPSIjYzg2MzJlIiBvcGFjaXR5PSIwLjkiLz4KICA8ZWxsaXBzZSBjeD0iMTYiIGN5PSIyNCIgcng9IjEuNSIgcnk9IjYiIGZpbGw9IiNjODYzMmUiIG9wYWNpdHk9IjAuOSIvPgogIDxlbGxpcHNlIGN4PSI4IiBjeT0iMTYiIHJ4PSI2IiByeT0iMS41IiBmaWxsPSIjYzg2MzJlIiBvcGFjaXR5PSIwLjkiLz4KICA8ZWxsaXBzZSBjeD0iMjEuNSIgY3k9IjEwLjUiIHJ4PSIxLjIiIHJ5PSI0LjUiIGZpbGw9IiNjODYzMmUiIG9wYWNpdHk9IjAuOCIgdHJhbnNmb3JtPSJyb3RhdGUoNDUgMjEuNSAxMC41KSIvPgogIDxlbGxpcHNlIGN4PSIyMS41IiBjeT0iMjEuNSIgcng9IjEuMiIgcnk9IjQuNSIgZmlsbD0iI2M4NjMyZSIgb3BhY2l0eT0iMC44IiB0cmFuc2Zvcm09InJvdGF0ZSgxMzUgMjEuNSAyMS41KSIvPgogIDxlbGxpcHNlIGN4PSIxMC41IiBjeT0iMjEuNSIgcng9IjEuMiIgcnk9IjQuNSIgZmlsbD0iI2M4NjMyZSIgb3BhY2l0eT0iMC44IiB0cmFuc2Zvcm09InJvdGF0ZSgyMjUgMTAuNSAyMS41KSIvPgogIDxlbGxpcHNlIGN4PSIxMC41IiBjeT0iMTAuNSIgcng9IjEuMiIgcnk9IjQuNSIgZmlsbD0iI2M4NjMyZSIgb3BhY2l0eT0iMC44IiB0cmFuc2Zvcm09InJvdGF0ZSgzMTUgMTAuNSAxMC41KSIvPgogIDwhLS0gQ2VudGVyIC0tPgogIDxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjMiIGZpbGw9IiNjODYzMmUiLz4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxLjUiIGZpbGw9IiNmZWZlZmUiLz4KPC9zdmc+" />
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    
-    <!-- Performance meta tags -->
-    <meta name="theme-color" content="#c8632e">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;1,8..60,300;1,8..60,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzJhNGEzOCI+UzwvdGV4dD48L3N2Zz4=" />
+
+    <meta name="theme-color" content="#F8F7F4">
     <meta name="color-scheme" content="light dark">
-    
-    <!-- Prevent flash of unstyled content (FOUC) by setting theme immediately -->
+
+    <!-- Prevent FOUC -->
     <script is:inline>
       (function() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        
-        // Load Google Fonts asynchronously without inline event handlers
-        const fontPreload = document.getElementById('font-preload');
-        if (fontPreload) {
-          fontPreload.onload = function() {
-            this.onload = null;
-            this.rel = 'stylesheet';
-          };
-        }
+        const t = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
       })();
     </script>
-    
-    <!-- SEO and Social Media -->
+
+    <!-- SEO -->
     <title>{title}</title>
     <meta name="description" content={description}>
     <link rel="canonical" href={canonicalURL}>
-    
+
     <!-- Open Graph -->
     <meta property="og:title" content={title}>
     <meta property="og:description" content={description}>
     <meta property="og:type" content={ogType}>
     <meta property="og:url" content={canonicalURL}>
     <meta property="og:image" content={new URL(ogImage, Astro.site)}>
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="Seneca's Letters">
-    
+    <meta property="og:locale" content="en_US">
+
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content={title}>
     <meta name="twitter:description" content={description}>
     <meta name="twitter:image" content={new URL(ogImage, Astro.site)}>
-    
-    <!-- Additional SEO -->
+
     <meta name="author" content="Lucius Annaeus Seneca">
     <meta name="robots" content="index, follow">
-    <meta name="language" content="en-US">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   </head>
   <body>
     <slot />
     <style is:global>
+      /* ===== Design Tokens ===== */
       :root {
-        --terracotta: #c8632e;
-        --terracotta-light: rgba(200, 99, 46, 0.04);
-        --terracotta-accent: rgba(200, 99, 46, 0.08);
-        --text-primary: #1f1f1f;
-        --text-secondary: #5a5a5a;
-        --text-muted: #8a8a8a;
-        --background: #fefefe;
-        --surface: #ffffff;
-        --divider: rgba(0, 0, 0, 0.06);
-        --subtle-border: rgba(0, 0, 0, 0.08);
+        /* Warm stone palette */
+        --stone-50:  #FCFBF9;
+        --stone-100: #F8F7F4;
+        --stone-200: #F0EEE9;
+        --stone-300: #E4E2DC;
+        --stone-400: #C5C0B8;
+        --stone-500: #9E9890;
+        --stone-600: #77716A;
+        --stone-700: #57524D;
+        --stone-800: #3B3835;
+        --stone-900: #1C1917;
+        --stone-950: #100F0D;
+
+        /* Copper-amber accent */
+        --amber: #C4782A;
+
+        /* Semantic tokens */
+        --color-accent:        var(--amber);
+        --color-accent-light:  rgba(196, 120, 42, 0.08);
+        --color-accent-medium: rgba(196, 120, 42, 0.15);
+        --color-accent-subtle: rgba(196, 120, 42, 0.05);
+
+        --text-primary:   var(--stone-900);
+        --text-secondary: var(--stone-700);
+        --text-muted:     var(--stone-500);
+        --bg-primary:     var(--stone-100);
+        --bg-secondary:   var(--stone-200);
+        --border-primary: var(--stone-300);
+        --border-light:   var(--stone-200);
+
+        /* Typography */
+        --font-display: 'Cormorant Garamond', 'Garamond', 'EB Garamond', Georgia, serif;
+        --font-serif:   'Source Serif 4', 'Iowan Old Style', Georgia, serif;
+        --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+        /* Type scale */
+        --text-xs:   0.6875rem;
+        --text-sm:   0.8125rem;
+        --text-base: 1rem;
+        --text-lg:   1.125rem;
+        --text-xl:   1.25rem;
+        --text-2xl:  1.5rem;
+        --text-3xl:  1.875rem;
+        --text-4xl:  2.25rem;
+        --text-5xl:  3rem;
+        --text-6xl:  3.75rem;
+        --text-7xl:  4.5rem;
+
+        /* Spacing (8px grid) */
+        --space-1:  0.25rem;
+        --space-2:  0.5rem;
+        --space-3:  0.75rem;
+        --space-4:  1rem;
+        --space-5:  1.25rem;
+        --space-6:  1.5rem;
+        --space-8:  2rem;
+        --space-10: 2.5rem;
+        --space-12: 3rem;
+        --space-16: 4rem;
+        --space-20: 5rem;
+        --space-24: 6rem;
+        --space-32: 8rem;
+
+        /* Layout */
+        --max-width-prose: 680px;
+        --max-width-wide:  1120px;
+        --sidenote-width:  240px;
+
+        /* Motion */
+        --duration-fast:   150ms;
+        --duration-normal: 250ms;
+
+        /* Difficulty */
+        --color-beginner:     #3D6E50;
+        --color-intermediate: #8B6030;
+        --color-advanced:     #7A3535;
+
+        /* Shadows */
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.07);
+
+        /* Border radius */
+        --radius-sm: 3px;
+        --radius-md: 6px;
       }
 
+      /* ===== Dark Mode ===== */
       [data-theme="dark"] {
-        --text-primary: #f2f2f2;
-        --text-secondary: #d0d0d0;
-        --text-muted: #9a9a9a;
-        --background: #0a0a0a;
-        --surface: #141414;
-        --terracotta-light: rgba(200, 99, 46, 0.06);
-        --terracotta-accent: rgba(200, 99, 46, 0.12);
-        --divider: rgba(255, 255, 255, 0.08);
-        --subtle-border: rgba(255, 255, 255, 0.12);
+        --text-primary:   #EEECEA;
+        --text-secondary: #A09890;
+        --text-muted:     #6A6560;
+        --bg-primary:     var(--stone-950);
+        --bg-secondary:   var(--stone-900);
+        --border-primary: #2E2B27;
+        --border-light:   #222019;
+
+        --color-accent:        #D4924A;
+        --color-accent-light:  rgba(212, 146, 74, 0.10);
+        --color-accent-medium: rgba(212, 146, 74, 0.18);
+        --color-accent-subtle: rgba(212, 146, 74, 0.06);
+
+        --color-beginner:     #5A9270;
+        --color-intermediate: #C49040;
+        --color-advanced:     #C46060;
       }
 
-      * {
+      /* ===== Reset ===== */
+      *, *::before, *::after {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
 
-      html, body {
-        margin: 0;
-        padding: 0;
-      }
-
       html {
-        font-family: 'Crimson Text', Georgia, 'Times New Roman', serif;
+        font-family: var(--font-serif);
         scroll-behavior: smooth;
-        font-size: 16px;
-      }
-
-      @media (min-width: 768px) {
-        html {
-          font-size: 17px;
-        }
-      }
-
-      @media (min-width: 1280px) {
-        html {
-          font-size: 18px;
-        }
+        -webkit-text-size-adjust: 100%;
       }
 
       body {
-        line-height: 1.65;
+        line-height: 1.6;
         color: var(--text-primary);
-        background-color: var(--background);
-        transition: background-color 0.3s ease, color 0.3s ease;
-        font-feature-settings: "liga" 1, "kern" 1, "onum" 1, "calt" 1;
+        background-color: var(--bg-primary);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
-        contain: layout style paint;
+        transition: background-color var(--duration-normal) ease,
+                    color var(--duration-normal) ease;
       }
 
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 2rem;
+      img, svg {
+        display: block;
+        max-width: 100%;
       }
 
-      .sans {
-        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      a {
+        color: inherit;
       }
 
-      /* Header */
-      .header {
-        padding: 2rem 0;
-        background: var(--background);
-        border-bottom: 1px solid var(--divider);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        transition: transform 0.3s ease-in-out;
-      }
-
-      .header.hidden {
-        transform: translateY(-100%);
-      }
-
-      .nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .logo {
-        font-size: 1.25rem;
-        font-weight: 300;
-        color: var(--terracotta);
-        text-decoration: none;
-        letter-spacing: -0.01em;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-family: 'Crimson Text', Georgia, serif;
-      }
-      
-      .logo-flower {
-        flex-shrink: 0;
-        vertical-align: middle;
-      }
-
-      .nav-right {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .nav-links {
-        display: flex;
-        list-style: none;
-        gap: 2.5rem;
-        align-items: center;
-        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      }
-
-      .nav-links a {
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 400;
-        transition: color 0.3s ease;
-        letter-spacing: 0.02em;
-      }
-
-      .nav-links a:hover,
-      .nav-links a.active {
-        color: var(--terracotta);
-      }
-
-      .theme-toggle {
-        background: none;
-        border: none;
-        padding: 0.75rem;
-        color: var(--text-secondary);
+      button {
+        font: inherit;
         cursor: pointer;
-        font-size: 1.25rem;
-        transition: color 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 44px;
-        min-height: 44px;
-        border-radius: 6px;
       }
 
-      .theme-toggle:hover {
-        color: var(--terracotta);
+      /* ===== Utilities ===== */
+      .container {
+        max-width: var(--max-width-wide);
+        margin: 0 auto;
+        padding: 0 var(--space-8);
       }
 
-
-      /* Footer */
-      .footer {
-        padding: 4rem 0;
-        background: var(--surface);
-        text-align: center;
-        border-top: 1px solid var(--divider);
-        margin-top: 6rem;
+      .prose-width {
+        max-width: var(--max-width-prose);
+        margin: 0 auto;
       }
 
-      .footer p {
-        color: var(--text-muted);
-        font-size: 0.95rem;
-        line-height: 1.6;
-        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      }
-
-      .footer a {
-        color: var(--terracotta);
-        text-decoration: none;
-        transition: opacity 0.3s ease;
-      }
-
-      .footer a:hover {
-        opacity: 0.8;
-      }
-
-      /* Responsive */
       @media (max-width: 768px) {
-        html, body {
-          margin: 0;
-          padding: 0;
-        }
-        
         .container {
-          padding: 0 1.25rem;
-        }
-        
-        .header {
-          padding: 1rem 0;
-          margin-top: 0;
-        }
-        
-        .nav {
-          flex-direction: column;
-          align-items: center;
-          gap: 1rem;
-        }
-        
-        .logo {
-          font-size: 1.1rem;
-          gap: 0.5rem;
-          text-align: center;
-        }
-        
-        .nav-right {
-          gap: 1rem;
-        }
-
-        .nav-links {
-          gap: 1.5rem;
-          justify-content: center;
-          flex-wrap: nowrap;
-        }
-        
-        .nav-links a {
-          font-size: 0.875rem;
-        }
-        
-        .theme-toggle {
-          font-size: 1.1rem;
-          padding: 0.5rem;
-          min-width: 40px;
-          min-height: 40px;
-        }
-        
-        .reading-controls {
-          gap: 0.25rem;
-        }
-        
-        .font-select {
-          font-size: 0.7rem;
-          padding: 0.2rem 0.4rem;
-        }
-        
-      }
-
-      /* Library Search Results and Cards */
-      .letter-card {
-        background: var(--surface);
-        border: 1px solid var(--subtle-border);
-        border-radius: 12px;
-        padding: 1.5rem;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      }
-
-
-      .letter-card h3 {
-        color: var(--terracotta);
-        font-size: 1.1rem;
-        font-weight: 500;
-        margin-bottom: 0.75rem;
-        line-height: 1.4;
-      }
-
-      .letter-card p {
-        color: var(--text-secondary);
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin-bottom: 1rem;
-      }
-
-      .letter-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      }
-
-      .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
-
-      .results-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 1.5rem;
-        margin-top: 2rem;
-      }
-
-      /* Timeline Styles */
-      .timeline {
-        position: relative;
-        padding-left: 2rem;
-      }
-
-      .timeline::before {
-        content: '';
-        position: absolute;
-        left: 1rem;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: linear-gradient(to bottom, var(--terracotta), rgba(200, 99, 46, 0.3));
-      }
-
-      .timeline-period {
-        position: relative;
-        margin-bottom: 3rem;
-      }
-
-      .timeline-period::before {
-        content: '';
-        position: absolute;
-        left: -2rem;
-        top: 0.5rem;
-        width: 12px;
-        height: 12px;
-        background: var(--terracotta);
-        border-radius: 50%;
-        border: 3px solid var(--background);
-        z-index: 1;
-      }
-
-      .timeline-header {
-        margin-bottom: 1.5rem;
-      }
-
-      .timeline-header h3 {
-        color: var(--terracotta);
-        font-size: 1.3rem;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-        text-transform: none;
-      }
-
-      .timeline-header p {
-        color: var(--text-muted);
-        font-size: 0.95rem;
-        font-style: italic;
-      }
-
-      .timeline-letters {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-        margin-left: 1rem;
-      }
-
-      /* Collections Styles */
-      .collections-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-      }
-
-      .collection-card {
-        background: var(--surface);
-        border: 1px solid var(--divider);
-        border-radius: 16px;
-        padding: 3rem 2.5rem 2.5rem;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .collection-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--terracotta);
-        opacity: 1;
-      }
-
-
-      .collection-header {
-        margin-bottom: 1rem;
-      }
-
-      .collection-title {
-        color: var(--terracotta);
-        font-size: 1.4rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        line-height: 1.3;
-        letter-spacing: -0.01em;
-      }
-
-      .collection-description {
-        color: var(--text-secondary);
-        font-size: 1rem;
-        line-height: 1.6;
-        margin-bottom: 2rem;
-        opacity: 0.8;
-      }
-
-      .collection-count {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: var(--terracotta-light);
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-      }
-
-      /* Collection letter links */
-      .letter-link {
-        display: inline-block;
-        padding: 0.6rem 1.1rem;
-        margin: 0.25rem;
-        background: var(--terracotta-light);
-        color: var(--terracotta);
-        text-decoration: none;
-        border-radius: 24px;
-        font-size: 0.875rem;
-        font-weight: 500;
-        border: 1px solid transparent;
-        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      }
-
-      /* Search and Filter Controls */
-      .search-container {
-        position: relative;
-        margin-bottom: 2rem;
-      }
-
-      .search-input {
-        width: 100%;
-        padding: 1rem 1.25rem;
-        border: 1px solid var(--subtle-border);
-        border-radius: 12px;
-        font-size: 1rem;
-        background: var(--surface);
-        color: var(--text-primary);
-        transition: all 0.3s ease;
-        font-family: inherit;
-      }
-
-      .search-input:focus {
-        outline: none;
-        border-color: var(--terracotta);
-        box-shadow: 0 0 0 3px rgba(200, 99, 46, 0.1);
-      }
-
-      .filter-controls {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        align-items: center;
-      }
-
-      .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .filter-group label {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      }
-
-      .filter-select {
-        padding: 0.5rem 1rem;
-        border: 1px solid var(--subtle-border);
-        border-radius: 8px;
-        background: var(--surface);
-        color: var(--text-primary);
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        min-width: 120px;
-      }
-
-      .filter-select:focus {
-        outline: none;
-        border-color: var(--terracotta);
-      }
-
-      /* Mobile optimizations */
-      @media (max-width: 768px) {
-        .results-grid {
-          grid-template-columns: 1fr;
-          gap: 1rem;
-        }
-
-        .collections-grid {
-          grid-template-columns: 1fr;
-          gap: 1.5rem;
-        }
-
-        .timeline {
-          padding-left: 1.5rem;
-        }
-
-        .timeline-letters {
-          grid-template-columns: 1fr;
-          margin-left: 0.5rem;
-        }
-
-        .letter-card,
-        .collection-card {
-          padding: 1.25rem;
-        }
-
-        .filter-controls {
-          flex-direction: column;
-          align-items: stretch;
-        }
-
-        .filter-group {
-          flex-direction: row;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .filter-select {
-          min-width: 140px;
+          padding: 0 var(--space-5);
         }
       }
     </style>
 
     <script is:inline>
-      // Initialize theme toggle button text
-      function initThemeToggle() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        const toggle = document.querySelector('.theme-toggle');
-        if (toggle) {
-          toggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-        }
-      }
-
+      // Theme toggle
       function toggleTheme() {
         const html = document.documentElement;
-        const currentTheme = html.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
-        html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        
-        const toggle = document.querySelector('.theme-toggle');
-        if (toggle) {
-          toggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        const current = html.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        updateThemeIcon(next);
+      }
+
+      function updateThemeIcon(theme) {
+        const btn = document.querySelector('.theme-toggle');
+        if (!btn) return;
+        const sunIcon = btn.querySelector('.icon-sun');
+        const moonIcon = btn.querySelector('.icon-moon');
+        if (sunIcon && moonIcon) {
+          sunIcon.style.display = theme === 'dark' ? 'block' : 'none';
+          moonIcon.style.display = theme === 'dark' ? 'none' : 'block';
         }
       }
 
-      // Auto-hide header on scroll
+      // Auto-hide header
       let lastScrollY = 0;
       let ticking = false;
 
       function updateHeader() {
         const header = document.querySelector('.header');
-        const scrollY = window.scrollY;
-        
-        if (scrollY > lastScrollY && scrollY > 50) {
-          // Scrolling down & past small threshold for mobile
-          header?.classList.add('hidden');
+        const y = window.scrollY;
+        if (y > lastScrollY && y > 80) {
+          header?.classList.add('header--hidden');
         } else {
-          // Scrolling up or at top
-          header?.classList.remove('hidden');
+          header?.classList.remove('header--hidden');
         }
-        
-        lastScrollY = scrollY;
+        lastScrollY = y;
         ticking = false;
       }
 
-      function onScroll() {
-        if (!ticking) {
-          requestAnimationFrame(updateHeader);
-          ticking = true;
-        }
-      }
-
-      // Initialize theme toggle and scroll behavior
       document.addEventListener('DOMContentLoaded', () => {
-        initThemeToggle();
-        window.addEventListener('scroll', onScroll, { passive: true });
+        const theme = localStorage.getItem('theme') || 'light';
+        updateThemeIcon(theme);
+
+        window.addEventListener('scroll', () => {
+          if (!ticking) {
+            requestAnimationFrame(updateHeader);
+            ticking = true;
+          }
+        }, { passive: true });
       });
-      
-      // Add event listener for theme toggle
+
       document.addEventListener('click', (e) => {
-        if (e.target && e.target.matches('.theme-toggle')) {
+        if (e.target.closest('.theme-toggle')) {
           toggleTheme();
         }
       });

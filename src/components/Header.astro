@@ -8,30 +8,145 @@ const { currentPath } = Astro.props;
 
 <header class="header">
   <div class="container">
-    <nav class="nav">
-      <a href="/" class="logo">
-        <svg class="logo-flower" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="12" cy="6" rx="2" ry="4" fill="currentColor" opacity="0.7"/>
-          <ellipse cx="18" cy="12" rx="4" ry="2" fill="currentColor" opacity="0.7"/>
-          <ellipse cx="12" cy="18" rx="2" ry="4" fill="currentColor" opacity="0.7"/>
-          <ellipse cx="6" cy="12" rx="4" ry="2" fill="currentColor" opacity="0.7"/>
-          <ellipse cx="15.5" cy="8.5" rx="1.5" ry="3" transform="rotate(45 15.5 8.5)" fill="currentColor" opacity="0.6"/>
-          <ellipse cx="15.5" cy="15.5" rx="3" ry="1.5" transform="rotate(45 15.5 15.5)" fill="currentColor" opacity="0.6"/>
-          <ellipse cx="8.5" cy="15.5" rx="1.5" ry="3" transform="rotate(45 8.5 15.5)" fill="currentColor" opacity="0.6"/>
-          <ellipse cx="8.5" cy="8.5" rx="3" ry="1.5" transform="rotate(45 8.5 8.5)" fill="currentColor" opacity="0.6"/>
-          <circle cx="12" cy="12" r="3" fill="currentColor"/>
-          <circle cx="12" cy="12" r="1.5" fill="white"/>
-        </svg>
-        Seneca's Letters
-      </a>
-      <div class="nav-right">
-        <ul class="nav-links">
-          <li><a href="/" class={currentPath === '/' ? 'active' : ''}>Home</a></li>
+    <nav class="header__nav">
+      <a href="/" class="header__logo">Seneca</a>
+
+      <div class="header__right">
+        <ul class="header__links">
+          <li><a href="/" class={currentPath === '/' ? 'active' : ''}>Letters</a></li>
           <li><a href="/library" class={currentPath === '/library' ? 'active' : ''}>Library</a></li>
           <li><a href="/about" class={currentPath === '/about' ? 'active' : ''}>About</a></li>
         </ul>
-        <button class="theme-toggle">🌙</button>
+
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
       </div>
     </nav>
   </div>
 </header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(248, 247, 244, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-light);
+    transition: transform 0.25s ease;
+  }
+
+  :global([data-theme="dark"]) .header {
+    background: rgba(16, 15, 13, 0.92);
+  }
+
+  .header--hidden {
+    transform: translateY(-100%);
+  }
+
+  .header__nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 56px;
+  }
+
+  .header__logo {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .header__right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .header__links {
+    display: flex;
+    list-style: none;
+    gap: var(--space-7, 1.75rem);
+  }
+
+  .header__links a {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .header__links a:hover {
+    color: var(--color-accent);
+  }
+
+  .header__links a.active {
+    color: var(--color-accent);
+    position: relative;
+  }
+
+  .header__links a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    background: var(--color-accent);
+  }
+
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    border-radius: 4px;
+    transition: color var(--duration-fast) ease;
+    flex-shrink: 0;
+  }
+
+  .theme-toggle:hover {
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 640px) {
+    .header__nav {
+      height: 48px;
+    }
+
+    .header__right {
+      gap: var(--space-5);
+    }
+
+    .header__links {
+      gap: var(--space-5);
+    }
+  }
+</style>

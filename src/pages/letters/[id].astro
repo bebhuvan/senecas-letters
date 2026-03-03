@@ -3,813 +3,898 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import lettersData from '../../data/all_letters.json';
+import footnotesData from '../../data/footnotes.json';
+import enhancedIndexRaw from '../../../public/enhanced-index.json';
+import { createSlug, cleanTitle, titleCase, getLetterUrl } from '../../utils/text';
+
+const enhancedIndex = enhancedIndexRaw as {
+  letters: Array<{
+    n: number; t: string; p: string; th: string;
+    k: string[]; meta: { length: string; difficulty: string; wordCount: number };
+    collections: string[]; timeline: { year: string; season: string } | null;
+  }>;
+  collections: Record<string, { letters: number[]; description: string; difficulty: string }>;
+  timeline: Array<{ year: string; season: string; letters: number[] }>;
+};
 
 const { id } = Astro.params;
 
-// Only accept full slug format: "84-on-gathering-ideas"
-// Reject old format like just "84"
 if (!id || !id.includes('-')) {
-  return new Response(null, {
-    status: 404,
-    statusText: 'Letter not found'
-  });
+  return new Response(null, { status: 404, statusText: 'Letter not found' });
 }
 
-// Find the letter by parsing the ID slug (format: "84-on-gathering-ideas")
 const letterNumber = parseInt(id.split('-')[0]);
 const letter = lettersData.letters.find(l => l.number === letterNumber);
 
-// If letter not found, return 404
 if (!letter) {
-  return new Response(null, {
-    status: 404,
-    statusText: 'Letter not found'
-  });
+  return new Response(null, { status: 404, statusText: 'Letter not found' });
 }
 
-// Generate SEO-friendly slug from title (component scope)
-function createSlug(title: string): string {
-  return title.toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with single
-    .trim();
-}
+const enhanced = enhancedIndex.letters.find(l => l.n === letterNumber);
+const wordCount = enhanced?.meta?.wordCount || 0;
+const readTime = Math.ceil(wordCount / 220);
+const timeline = enhanced?.timeline;
+const letterCollections = enhanced?.collections || [];
 
-// letterNumber is already defined above
-
-// Get previous and next letters for navigation
 const currentIndex = lettersData.letters.findIndex(l => l.number === letterNumber);
 const prevLetter = currentIndex > 0 ? lettersData.letters[currentIndex - 1] : null;
 const nextLetter = currentIndex < lettersData.letters.length - 1 ? lettersData.letters[currentIndex + 1] : null;
 
-// Function to get Roman numeral
-function toRoman(num: number): string {
-  const romanNumerals = [
-    ['C', 100], ['XC', 90], ['L', 50], ['XL', 40], ['X', 10], ['IX', 9], ['V', 5], ['IV', 4], ['I', 1]
-  ];
-  let result = '';
-  for (const [roman, value] of romanNumerals) {
-    while (num >= value) {
-      result += roman;
-      num -= value;
-    }
-  }
-  return result;
-}
-
-const romanNumeral = letter.roman_number || toRoman(letter.number);
-
-// Create description for SEO
-const letterDescription = letter.content
-  .split('\n\n')[0] // First paragraph
-  .replace(/^\d+\.\s+/, '') // Remove number prefix
-  .replace(/\[\d+\]/g, '') // Remove footnotes
-  .substring(0, 160) + '...'; // Truncate for meta description
-
-// Clean title by removing footnote references like [1], [2], etc.
-function cleanTitle(title: string): string {
-  return title.replace(/\[\d+\]/g, '').trim();
-}
-
 const cleanedTitle = cleanTitle(letter.title);
-
-// SEO-friendly slug for this letter
+const displayTitle = titleCase(cleanedTitle);
 const currentSlug = createSlug(cleanedTitle);
 
-// Helper function for template use - SEO-friendly URLs with title
-function getLetterUrl(letterObj: any): string {
-  const cleanedTitle = cleanTitle(letterObj.title);
-  const slug = createSlug(cleanedTitle);
-  return `/letters/${letterObj.number}-${slug}`;
-}
+const letterFootnotes: Record<string, string> = (footnotesData as any)[String(letter.number)] || {};
+const hasFootnotes = Object.keys(letterFootnotes).length > 0;
 
-// Function to format content with proper paragraphs, creating new paragraphs where numbers existed
+const letterDescription = letter.content
+  .split('\n\n')[0]
+  .replace(/^\d+\.\s+/, '')
+  .replace(/\[\d+\]/g, '')
+  .substring(0, 160) + '...';
+
 function formatContent(content: string): string {
-  // First, split by existing paragraph breaks
-  let sections = content.split('\n\n');
-  let allParagraphs = [];
-  
+  let lines = content.split('\n');
+  const cleanedLines: string[] = [];
+  let hitFootnotes = false;
+
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].trim().startsWith('↑') || (hitFootnotes && lines[i].trim() === '')) {
+      hitFootnotes = true;
+      continue;
+    }
+    hitFootnotes = false;
+    cleanedLines.unshift(lines[i]);
+  }
+
+  const cleanContent = cleanedLines.join('\n');
+  let sections = cleanContent.split('\n\n');
+  let allParagraphs: string[] = [];
+  let footnoteCounter = 0;
+
   sections.forEach(section => {
     section = section.trim();
-    if (section.length === 0) return;
-    
-    // Split on paragraph numbers within the text to create new paragraphs
-    // This regex looks for patterns like " 2. " or " 3. " etc. in the middle of text
+    if (!section) return;
+
     let parts = section.split(/\s+(\d+)\.\s+/);
-    
+
     for (let i = 0; i < parts.length; i++) {
       let part = parts[i].trim();
-      if (part.length === 0) continue;
-      
-      // Skip if this is just a lone number (these are the captured groups from the split)
+      if (!part) continue;
       if (/^\d+$/.test(part)) continue;
-      
-      // Clean the part
-      let cleaned = part;
-      
-      // Remove paragraph numbers at the beginning (e.g., "1. ", "2. ", etc.)
-      cleaned = cleaned.replace(/^\d+\.\s+/, '');
-      
-      // Remove footnote markers like [1], [2], etc.
-      cleaned = cleaned.replace(/\[\d+\]/g, '');
-      
-      // Remove footnote content at the end (lines starting with ↑)
-      cleaned = cleaned.replace(/↑.*$/gm, '');
-      
-      // Clean up extra whitespace and newlines
+
+      let cleaned = part.replace(/^\d+\.\s+/, '');
+
+      cleaned = cleaned.replace(/\[(\d+)\]/g, (_match, num) => {
+        footnoteCounter++;
+        const fnNum = footnoteCounter;
+        const fnText = letterFootnotes[String(fnNum)] || '';
+        const supLink = `<sup class="fnref"><a href="#fn-${fnNum}" id="fnref-${fnNum}" role="doc-noteref" aria-label="Footnote ${fnNum}">${fnNum}</a></sup>`;
+        const sidenote = fnText
+          ? `<span class="sidenote" id="sn-${fnNum}" role="doc-footnote"><span class="sidenote__number">${fnNum}</span>${fnText}</span>`
+          : '';
+        return supLink + sidenote;
+      });
+
       cleaned = cleaned.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-      
-      if (cleaned.length > 0) {
-        allParagraphs.push(cleaned);
-      }
+      if (cleaned) allParagraphs.push(cleaned);
     }
   });
-  
+
   return allParagraphs
-    .filter(paragraph => paragraph.length > 0)
-    .map(paragraph => `<p>${paragraph}</p>`)
+    .filter(p => p.length > 0)
+    .map(p => `<p>${p}</p>`)
     .join('');
+}
+
+function buildEndnotes(): string {
+  if (!hasFootnotes) return '';
+  let html = '<ol class="endnotes__list">';
+  const fnKeys = Object.keys(letterFootnotes).sort((a, b) => Number(a) - Number(b));
+  fnKeys.forEach(key => {
+    html += `<li id="fn-${key}" role="doc-footnote">${letterFootnotes[key]} <a href="#fnref-${key}" class="endnote__backlink" role="doc-backlink" aria-label="Back to reference ${key}">&uarr;</a></li>`;
+  });
+  html += '</ol>';
+  return html;
 }
 ---
 
-<Layout 
-  title={`Letter ${letter.number}: ${cleanedTitle.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())} - Seneca`}
+<Layout
+  title={`Letter ${letter.number}: ${displayTitle} — Seneca`}
   description={letterDescription}
   ogType="article"
   canonical={`/letters/${letter.number}-${currentSlug}`}
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": `Letter ${letter.number}: ${displayTitle}`,
+    "author": { "@type": "Person", "name": "Lucius Annaeus Seneca" },
+    "publisher": { "@type": "Organization", "name": "Seneca's Letters", "url": "https://seneca.ink" },
+    "mainEntityOfPage": `https://seneca.ink/letters/${letter.number}-${currentSlug}`,
+    "wordCount": wordCount,
+    "articleSection": "Philosophy",
+    "inLanguage": "en",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Library", "item": "https://seneca.ink/library" },
+        { "@type": "ListItem", "position": 2, "name": `Letter ${letter.number}` }
+      ]
+    }
+  }}
 >
   <Header />
-  
-  <main class="letter-main">
 
-    <!-- Letter Content -->
-    <article class="letter-content">
-      <div class="container">
-        <!-- Letter Header -->
-        <header class="letter-header">
-          <div class="letter-meta">
-            <span class="letter-number">Letter {letter.number}</span>
-            <span class="letter-date">c. 65 CE</span>
-          </div>
-          <h1 class="letter-title">{cleanedTitle.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</h1>
-          
-          <!-- Reading Controls -->
-          <div class="reading-controls">
-            <div class="control-group">
-              <select id="fontSelect" class="font-select">
-                <option value="lora">Lora (Default)</option>
-                <option value="liberation">Liberation Serif</option>
-                <option value="iowan">Iowan Old Style</option>
-                <option value="palatino">Palatino</option>
-                <option value="georgia">Georgia</option>
-                <option value="system-sans">System Sans</option>
-                <option value="sf-pro">SF Pro</option>
-              </select>
-            </div>
-            
-            <div class="control-group">
-              <button id="decreaseSize" class="size-btn">A-</button>
-              <span id="currentSize" class="current-size">20px</span>
-              <button id="increaseSize" class="size-btn">A+</button>
-            </div>
-          </div>
-          
-        </header>
+  <!-- Reading progress -->
+  <div class="progress-bar" id="progressBar"></div>
 
-        <!-- Letter Body -->
-        <div class="letter-body" id="letterBody">
-          <Fragment set:html={formatContent(letter.content)} />
+  <main class="reader">
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="reader__breadcrumb" aria-label="Breadcrumb">
+        <a href="/library">Library</a>
+        <span aria-hidden="true">/</span>
+        <span>Letter {letter.number}</span>
+      </nav>
+
+      <!-- Header -->
+      <header class="reader__header">
+        <span class="reader__letter-num">{letter.number}</span>
+        <div class="reader__meta">
+          <span class="reader__meta-item">{readTime} min read</span>
+          {timeline && (
+            <>
+              <span class="reader__sep" aria-hidden="true">·</span>
+              <span class="reader__meta-item">{timeline.year} · {timeline.season}</span>
+            </>
+          )}
         </div>
-
-        <!-- Letter Navigation -->
-        <nav class="letter-navigation">
-          <div class="nav-links">
-            {prevLetter && (
-              <a href={getLetterUrl(prevLetter)} class="nav-link prev">
-                <span class="nav-direction">← Previous</span>
-                <span class="nav-title">Letter {prevLetter.roman_number || toRoman(prevLetter.number)}: {cleanTitle(prevLetter.title).toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
+        <h1 class="reader__title">{displayTitle}</h1>
+        {letterCollections.length > 0 && (
+          <div class="reader__collections">
+            {letterCollections.map(name => (
+              <a href={`/library?collection=${encodeURIComponent(name)}`} class="reader__collection-tag">
+                {name}
               </a>
-            )}
-            
-            {nextLetter && (
-              <a href={getLetterUrl(nextLetter)} class="nav-link next">
-                <span class="nav-direction">Next →</span>
-                <span class="nav-title">Letter {nextLetter.roman_number || toRoman(nextLetter.number)}: {cleanTitle(nextLetter.title).toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
-              </a>
-            )}
+            ))}
           </div>
-          
-          <a href="/library" class="back-to-library">← Back to Library</a>
-        </nav>
+        )}
+      </header>
 
-        <!-- Related Letters -->
-        <section class="related-letters">
-          <h3 class="related-title">Related Letters</h3>
-          <div class="related-grid">
-            {lettersData.letters
-              .filter(l => l.number !== letter.number)
-              .slice(Math.max(0, letter.number - 15), letter.number + 10)
-              .filter(l => l.number !== letter.number)
-              .slice(0, 3)
-              .map(relatedLetter => (
-                <a href={getLetterUrl(relatedLetter)} class="related-card">
-                  <div class="related-number">Letter {relatedLetter.roman_number || toRoman(relatedLetter.number)}</div>
-                  <h4 class="related-letter-title">{cleanTitle(relatedLetter.title).toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</h4>
-                  <p class="related-excerpt">{relatedLetter.content.split('\n\n')[0].replace(/^\d+\.\s+/, '').substring(0, 120)}...</p>
-                </a>
-              ))
-            }
-          </div>
-        </section>
+      <!-- Body -->
+      <div class="reader__grid">
+        <article class="reader__body" id="letterBody">
+          <Fragment set:html={formatContent(letter.content)} />
+        </article>
       </div>
-    </article>
+
+      <!-- Endnotes (mobile/tablet) -->
+      {hasFootnotes && (
+        <aside class="endnotes" role="doc-endnotes" aria-label="Footnotes">
+          <h2 class="endnotes__title">Footnotes</h2>
+          <Fragment set:html={buildEndnotes()} />
+        </aside>
+      )}
+
+      <!-- Navigation -->
+      <nav class="reader__nav" aria-label="Letter navigation">
+        <div class="reader__nav-inner">
+          {prevLetter ? (
+            <a href={getLetterUrl(prevLetter.number, prevLetter.title)} class="reader__nav-item reader__nav-item--prev">
+              <span class="reader__nav-dir">← Previous</span>
+              <span class="reader__nav-title">{titleCase(cleanTitle(prevLetter.title))}</span>
+            </a>
+          ) : <div />}
+
+          <a href="/library" class="reader__nav-center">All letters</a>
+
+          {nextLetter ? (
+            <a href={getLetterUrl(nextLetter.number, nextLetter.title)} class="reader__nav-item reader__nav-item--next">
+              <span class="reader__nav-dir">Next →</span>
+              <span class="reader__nav-title">{titleCase(cleanTitle(nextLetter.title))}</span>
+            </a>
+          ) : <div />}
+        </div>
+      </nav>
+
+    </div>
   </main>
+
+  <!-- Reading controls -->
+  <div class="controls" id="readingControls">
+    <button class="controls__toggle" id="controlsToggle" aria-label="Reading settings">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="6" x2="20" y2="6"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="18" x2="14" y2="18"/>
+      </svg>
+    </button>
+    <div class="controls__panel" id="controlsPanel">
+      <div class="controls__row">
+        <label class="controls__label">Font</label>
+        <select id="fontSelect" class="controls__select">
+          <option value="source-serif">Source Serif</option>
+          <option value="georgia">Georgia</option>
+          <option value="palatino">Palatino</option>
+          <option value="system-sans">Sans-serif</option>
+        </select>
+      </div>
+      <div class="controls__row">
+        <label class="controls__label">Size</label>
+        <div class="controls__size">
+          <button id="decreaseSize" class="controls__size-btn">A−</button>
+          <span id="currentSize" class="controls__size-val">20</span>
+          <button id="increaseSize" class="controls__size-btn">A+</button>
+        </div>
+      </div>
+      <div class="controls__row">
+        <label class="controls__label">Focus</label>
+        <button id="readingModeBtn" class="controls__toggle-btn" data-active="false">Off</button>
+      </div>
+      <div class="controls__row">
+        <label class="controls__label">Notes</label>
+        <button id="footnotesBtn" class="controls__toggle-btn" data-active="true">Shown</button>
+      </div>
+    </div>
+  </div>
 
   <Footer />
 </Layout>
 
 <style>
-  /* Color Variables */
-  :root {
-    --terracotta: #B87333;
-    --terracotta-light: rgba(184, 115, 51, 0.05);
+  /* Reading progress */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 1.5px;
+    width: 0%;
+    background: var(--color-accent);
+    z-index: 200;
+    transition: width 60ms linear;
   }
 
-  .letter-main {
-    min-height: 100vh;
-    background: var(--background);
-    padding-top: 0;
+  .reader {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-20);
   }
 
-
-
-  /* Letter Content */
-  .letter-content {
-    padding-top: 1rem;
+  /* Breadcrumb */
+  .reader__breadcrumb {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    margin-bottom: var(--space-10);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    letter-spacing: 0.03em;
   }
 
-  .letter-header {
+  .reader__breadcrumb a {
+    text-decoration: none;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .reader__breadcrumb a:hover {
+    color: var(--color-accent);
+  }
+
+  /* Header */
+  .reader__header {
+    max-width: var(--max-width-prose);
+    margin: 0 auto var(--space-16);
     text-align: center;
-    padding: 3rem 0 4rem;
-    position: relative;
+    padding-top: var(--space-8);
   }
 
-  .letter-meta {
+  .reader__header::after {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 2px;
+    background: var(--color-accent);
+    margin: var(--space-6) auto 0;
+  }
+
+  .reader__letter-num {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 10vw, 7rem);
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--space-5);
+  }
+
+  .reader__meta {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2rem;
-    margin-bottom: 2rem;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+    flex-wrap: wrap;
   }
 
-  .letter-number {
-    color: var(--terracotta);
-    font-size: 0.9rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .letter-date {
+  .reader__meta-item {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
     color: var(--text-muted);
-    font-size: 0.85rem;
-    font-style: italic;
-    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
-  .letter-title {
-    font-size: clamp(2.5rem, 5vw, 4rem);
+  .reader__sep {
+    color: var(--border-primary);
+    font-size: var(--text-xs);
+  }
+
+  .reader__title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4.5vw, 3.25rem);
     font-weight: 400;
-    color: var(--text-primary);
-    margin-bottom: 3rem;
     line-height: 1.2;
     letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin-bottom: var(--space-4);
   }
 
-  .reading-options-btn {
-    display: inline-flex;
+  .reader__collections {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .reader__collection-tag {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 1px solid var(--border-primary);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  }
+
+  .reader__collection-tag:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  /* Reader grid — sidenote layout */
+  .reader__grid {
+    display: grid;
+    grid-template-columns: 1fr min(var(--max-width-prose), 100%) 1fr;
+    column-gap: var(--space-8);
+  }
+
+  @media (min-width: 1200px) {
+    .reader__grid {
+      grid-template-columns: 1fr min(var(--max-width-prose), 100%) var(--sidenote-width);
+    }
+  }
+
+  .reader__body {
+    grid-column: 2;
+    font-family: var(--font-serif);
+    font-size: 20px;
+    line-height: 1.95;
+    letter-spacing: 0.005em;
+    color: var(--text-primary);
+    hyphens: auto;
+  }
+
+  /* Drop cap */
+  .reader__body :global(p:first-child::first-letter) {
+    float: left;
+    font-family: var(--font-display);
+    font-size: 4.25em;
+    line-height: 0.75;
+    font-weight: 400;
+    color: var(--color-accent);
+    padding-right: 0.06em;
+    margin-top: 0.07em;
+  }
+
+  .reader__body :global(p) {
+    margin-bottom: 1.6em;
+  }
+
+  /* Footnote references */
+  .reader__body :global(.fnref) {
+    font-family: var(--font-sans);
+    font-size: 0.65em;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+    top: -0.55em;
+  }
+
+  .reader__body :global(.fnref a) {
+    color: var(--color-accent);
+    text-decoration: none;
+    padding: 0 1px;
+  }
+
+  .reader__body :global(.fnref a:hover) {
+    text-decoration: underline;
+  }
+
+  /* Sidenotes — desktop only */
+  .reader__body :global(.sidenote) {
+    display: none;
+  }
+
+  @media (min-width: 1200px) {
+    .reader__body :global(.sidenote) {
+      display: block;
+      float: right;
+      clear: right;
+      width: var(--sidenote-width);
+      margin-right: calc(-1 * var(--sidenote-width) - var(--space-8));
+      font-family: var(--font-sans);
+      font-size: var(--text-sm);
+      line-height: 1.65;
+      color: var(--text-secondary);
+      border-left: 2px solid var(--color-accent-medium);
+      padding-left: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+
+    .reader__body :global(.sidenote__number) {
+      font-weight: 600;
+      color: var(--color-accent);
+      margin-right: 3px;
+    }
+
+    .reader__body :global(.sidenote__number)::after {
+      content: '.';
+    }
+  }
+
+  /* Endnotes — mobile/tablet */
+  .endnotes {
+    max-width: var(--max-width-prose);
+    margin: var(--space-16) auto 0;
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-primary);
+  }
+
+  @media (min-width: 1200px) {
+    .endnotes { display: none; }
+  }
+
+  .endnotes__title {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-5);
+  }
+
+  .endnotes :global(.endnotes__list) {
+    list-style: decimal;
+    padding-left: var(--space-5);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  .endnotes :global(.endnotes__list li) {
+    margin-bottom: var(--space-2);
+    scroll-margin-top: 80px;
+  }
+
+  .endnotes :global(.endnotes__list li:target) {
+    background: var(--color-accent-light);
+    border-radius: 3px;
+    padding: var(--space-1) var(--space-2);
+    margin-left: calc(-1 * var(--space-2));
+  }
+
+  .endnotes :global(.endnote__backlink) {
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-left: var(--space-1);
+  }
+
+  /* Navigation */
+  .reader__nav {
+    max-width: var(--max-width-prose);
+    margin: var(--space-20) auto 0;
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-primary);
+  }
+
+  .reader__nav-inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: var(--space-4);
     align-items: center;
-    gap: 0.5rem;
-    background: var(--terracotta);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
   }
 
-  .reading-options-btn:hover {
-    background: #b8561a;
-    transform: translateY(-1px);
+  .reader__nav-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    text-decoration: none;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    transition: background var(--duration-fast) ease;
   }
 
-  /* Letter Body */
-  /* Reading Controls */
-  .reading-controls {
+  .reader__nav-item--next {
+    text-align: right;
+  }
+
+  .reader__nav-item:hover {
+    background: var(--color-accent-subtle);
+  }
+
+  .reader__nav-dir {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .reader__nav-title {
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-style: italic;
+    color: var(--text-primary);
+    line-height: 1.3;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .reader__nav-item:hover .reader__nav-dir,
+  .reader__nav-item:hover .reader__nav-title {
+    color: var(--text-primary);
+  }
+
+  .reader__nav-center {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--border-primary);
+    border-radius: 2px;
+    white-space: nowrap;
+    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  }
+
+  .reader__nav-center:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+  }
+
+  /* Reading controls */
+  .controls {
+    position: fixed;
+    bottom: var(--space-8);
+    right: var(--space-8);
+    z-index: 50;
+  }
+
+  .controls__toggle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    padding: 1.25rem;
-    background: var(--surface);
-    border: 1px solid var(--divider);
-    border-radius: 6px;
-    max-width: 400px;
-    margin: 0 auto 3rem;
+    box-shadow: var(--shadow-sm);
+    transition: color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
   }
 
-  .control-group {
+  .controls__toggle:hover {
+    color: var(--text-primary);
+    box-shadow: var(--shadow-md);
+  }
+
+  .controls__panel {
+    display: none;
+    position: absolute;
+    bottom: 50px;
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    min-width: 210px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .controls__panel.open {
+    display: block;
+  }
+
+  .controls__row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+    gap: var(--space-3);
   }
 
-  .font-select {
-    padding: 0.5rem 0.75rem;
-    background: var(--background);
-    border: 1px solid var(--divider);
-    border-radius: 4px;
-    color: var(--text-primary);
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 0.875rem;
-    cursor: pointer;
-    min-width: 140px;
+  .controls__row + .controls__row {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
   }
 
-  .font-select:focus {
-    outline: none;
-    border-color: var(--terracotta);
-  }
-
-  .size-btn {
-    background: var(--background);
-    border: 1px solid var(--divider);
-    color: var(--text-primary);
-    padding: 0.5rem 0.75rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.3s ease;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-
-  .size-btn:hover {
-    background: var(--terracotta);
-    color: white;
-    border-color: var(--terracotta);
-  }
-
-  .current-size {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    min-width: 3rem;
-    text-align: center;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-
-  .letter-body {
-    max-width: 750px;
-    margin: 0 auto;
-    font-size: 20px;
-    line-height: 1.8;
-    color: var(--text-primary);
-    font-family: 'Lora', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Minion Pro', 'Hoefler Text', Georgia, serif;
-  }
-
-  .letter-body :global(p) {
-    margin-bottom: 1.5em;
-    text-align: justify;
-    hyphens: auto;
-    -webkit-hyphens: auto;
-    -ms-hyphens: auto;
-  }
-
-  /* Removed special first paragraph styling for consistency */
-
-  /* Letter Navigation */
-  .letter-navigation {
-    max-width: 750px;
-    margin: 6rem auto 0;
-    padding-top: 3rem;
-    border-top: 1px solid var(--divider);
-  }
-
-  .nav-links {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .nav-link {
-    text-decoration: none;
-    padding: 2rem;
-    background: var(--surface);
-    border: 1px solid transparent;
-    border-radius: 8px;
-    display: block;
-  }
-
-  .nav-link.prev {
-    text-align: left;
-  }
-
-  .nav-link.next {
-    text-align: right;
-    grid-column: 2;
-  }
-
-  .nav-direction {
-    display: block;
-    font-size: 0.85rem;
-    color: var(--terracotta);
-    font-weight: 600;
-    font-family: 'Inter', sans-serif;
+  .controls__label {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
+    letter-spacing: 0.08em;
   }
 
-  .nav-title {
-    display: block;
+  .controls__select {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
     color: var(--text-primary);
-    font-size: 1rem;
-    line-height: 1.4;
-    font-weight: 500;
   }
 
-  .back-to-library {
-    display: inline-flex;
+  .controls__size {
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
+  }
+
+  .controls__size-btn {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
     color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-family: 'Inter', sans-serif;
-    transition: color 0.3s ease;
+    transition: background var(--duration-fast) ease;
   }
 
-  .back-to-library:hover {
-    color: var(--terracotta);
-  }
-
-  /* Related Letters */
-  .related-letters {
-    max-width: 750px;
-    margin: 4rem auto 0;
-    padding-top: 3rem;
-    border-top: 1px solid var(--divider);
-  }
-
-  .related-title {
-    font-size: 1.5rem;
+  .controls__size-btn:hover {
+    background: var(--bg-secondary);
     color: var(--text-primary);
-    margin-bottom: 2rem;
-    font-weight: 400;
+  }
+
+  .controls__size-val {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    min-width: 2rem;
     text-align: center;
-    font-family: 'Inter', sans-serif;
   }
 
-  .related-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
+  .controls__toggle-btn {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-3);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background var(--duration-fast) ease, color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+    min-width: 4rem;
+    text-align: center;
   }
 
-  .related-card {
-    text-decoration: none;
-    padding: 1.5rem;
-    background: var(--surface);
-    border: 1px solid var(--divider);
-    border-radius: 8px;
-    display: block;
-  }
-
-  .related-number {
-    color: var(--terracotta);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.5rem;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .related-letter-title {
+  .controls__toggle-btn[data-active="true"] {
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
     color: var(--text-primary);
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    line-height: 1.3;
   }
 
-  .related-excerpt {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-    line-height: 1.5;
+  /* ── Reading mode ── */
+  :global(body.reading-mode) :global(header),
+  :global(body.reading-mode) :global(footer) {
+    display: none !important;
   }
 
-  /* Font Variations - Global styles */
-  :global(.font-lora) {
-    font-family: 'Lora', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Minion Pro', 'Hoefler Text', Georgia, serif !important;
-    font-feature-settings: 'liga' 1, 'kern' 1;
-  }
-  :global(.font-liberation) {
-    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', Georgia, serif !important;
-    font-feature-settings: 'liga' 1, 'kern' 1;
-  }
-  :global(.font-iowan) {
-    font-family: 'Iowan Old Style', 'New York', 'Apple Garamond', 'Baskerville', Georgia, serif !important;
-    font-feature-settings: 'liga' 1, 'kern' 1, 'onum' 1;
-  }
-  :global(.font-palatino) {
-    font-family: 'Palatino Linotype', 'Palatino', 'Book Antiqua', 'URW Palladio L', Georgia, serif !important;
-    font-feature-settings: 'liga' 1, 'kern' 1;
-  }
-  :global(.font-georgia) { 
-    font-family: Georgia, 'Nimbus Roman', 'Liberation Serif', serif !important;
-    font-feature-settings: 'liga' 1, 'kern' 1;
-  }
-  :global(.font-system-sans) { 
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', 'DejaVu Sans', system-ui, sans-serif !important;
-    font-weight: 400;
-    letter-spacing: -0.014em;
-  }
-  :global(.font-sf-pro) {
-    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', system-ui, sans-serif !important;
-    font-weight: 400;
-    letter-spacing: -0.016em;
-    font-feature-settings: 'liga' 1, 'kern' 1;
+  :global(body.reading-mode .reader__breadcrumb),
+  :global(body.reading-mode .reader__collections),
+  :global(body.reading-mode .reader__nav) {
+    display: none !important;
   }
 
-  /* Responsive */
+  :global(body.reading-mode .reader) {
+    padding-top: var(--space-16);
+  }
+
+  /* ── Footnotes hidden ── */
+  :global(body.no-footnotes .sidenote),
+  :global(body.no-footnotes .endnotes) {
+    display: none !important;
+  }
+
+  :global(body.no-footnotes .fnref) {
+    opacity: 0.3;
+  }
+
   @media (max-width: 768px) {
-    .letter-header {
-      padding: 2rem 0 3rem;
-    }
-    
-    .reading-controls {
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1rem;
-    }
-    
-    .font-select {
-      min-width: 120px;
-      font-size: 0.8rem;
+    .reader__title {
+      font-size: 1.875rem;
     }
 
-    .letter-title {
-      font-size: 2.5rem;
+    .reader__body {
+      font-size: 17px;
+      line-height: 1.85;
     }
 
-    .letter-body {
-      font-size: 16px;
-      line-height: 1.7;
+    .reader__nav-inner {
+      grid-template-columns: 1fr 1fr;
     }
 
-    .letter-body :global(p) {
-      margin-bottom: 1.4em;
+    .reader__nav-center {
+      display: none;
     }
 
-
-    .nav-links {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
+    .controls {
+      bottom: var(--space-4);
+      right: var(--space-4);
     }
-
-    .nav-link.next {
-      grid-column: 1;
-      text-align: left;
-    }
-
-    .nav-link {
-      padding: 1.5rem;
-    }
-
-    .letter-navigation {
-      margin-top: 4rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .letter-meta {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
   }
 </style>
 
-<script nonce={Astro.locals.nonce}>
-  console.log('🚀 Script tag executed immediately!');
-  
-  // Function to initialize when DOM is ready
-  function initFontSelector() {
-    console.log('🔥 Initializing font selector...');
-    
-    // Reading controls functionality
-    const letterBody = document.getElementById('letterBody');
-    const fontSelect = document.getElementById('fontSelect');
-    const decreaseSizeBtn = document.getElementById('decreaseSize');
-    const increaseSizeBtn = document.getElementById('increaseSize');
-    const currentSizeDisplay = document.getElementById('currentSize');
-    const themeToggle = document.getElementById('themeToggle');
-    
-    console.log('🔍 Elements found:', { letterBody, fontSelect, decreaseSizeBtn, increaseSizeBtn });
-    
-    // Verify elements are found
-    if (!fontSelect) {
-      console.log('❌ fontSelect element NOT found');
-      return; // Exit if no fontSelect found
+<script is:inline>
+  (function() {
+    var body = document.getElementById('letterBody');
+    var toggle = document.getElementById('controlsToggle');
+    var panel = document.getElementById('controlsPanel');
+    var fontSelect = document.getElementById('fontSelect');
+    var decreaseBtn = document.getElementById('decreaseSize');
+    var increaseBtn = document.getElementById('increaseSize');
+    var sizeDisplay = document.getElementById('currentSize');
+    var progressBar = document.getElementById('progressBar');
+
+    if (!body || !toggle) return;
+
+    var fontSize = parseInt(localStorage.getItem('font-size') || '20');
+
+    var fontMap = {
+      'source-serif': "'Source Serif 4', 'Iowan Old Style', Georgia, serif",
+      'georgia':      "Georgia, 'Nimbus Roman', serif",
+      'palatino':     "'Palatino Linotype', 'Palatino', 'Book Antiqua', Georgia, serif",
+      'system-sans':  "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+    };
+
+    function applyFont(key) {
+      body.style.fontFamily = fontMap[key] || fontMap['source-serif'];
+      localStorage.setItem('preferred-font', key);
     }
-    
-    if (!letterBody) {
-      console.log('❌ letterBody element NOT found');
-      return; // Exit if no letterBody found
+
+    function applySize(size) {
+      fontSize = Math.max(15, Math.min(28, size));
+      body.style.fontSize = fontSize + 'px';
+      if (sizeDisplay) sizeDisplay.textContent = fontSize;
+      localStorage.setItem('font-size', String(fontSize));
     }
-    
-    console.log('✅ All elements found successfully');
 
-    let currentFontSize = 20;
+    toggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      panel.classList.toggle('open');
+    });
 
-  // Font selection
-  fontSelect?.addEventListener('change', (e) => {
-    console.log('🎯 Font selection event triggered!');
-    const target = e.target;
-    const fontValue = target.value;
-    console.log('🔤 Font changed to:', fontValue);
-    
-    if (letterBody) {
-      // Define font families for each option
-      const fontMap = {
-        'lora': "'Lora', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Minion Pro', 'Hoefler Text', Georgia, serif",
-        'liberation': "'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', Georgia, serif",
-        'iowan': "'Iowan Old Style', 'New York', 'Apple Garamond', 'Baskerville', Georgia, serif",
-        'palatino': "'Palatino Linotype', 'Palatino', 'Book Antiqua', 'URW Palladio L', Georgia, serif",
-        'georgia': "Georgia, 'Nimbus Roman', 'Liberation Serif', serif",
-        'system-sans': "-apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', 'DejaVu Sans', system-ui, sans-serif",
-        'sf-pro': "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', system-ui, sans-serif"
-      };
-      
-      // Apply font directly via inline style (highest specificity)
-      const fontFamily = fontMap[fontValue] || fontMap['lora'];
-      letterBody.style.fontFamily = fontFamily;
-      console.log('Applied font-family:', fontFamily);
-      
-      // Force a style recalculation
-      letterBody.offsetHeight; // Trigger reflow
-    }
-    localStorage.setItem('preferred-font', fontValue);
-  });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.controls')) panel.classList.remove('open');
+    });
 
-  // Font size controls
-  function updateFontSize(size) {
-    if (letterBody) {
-      letterBody.style.fontSize = `${size}px`;
-      if (currentSizeDisplay) {
-        currentSizeDisplay.textContent = `${size}px`;
-      }
-      localStorage.setItem('font-size', size.toString());
-    }
-  }
-
-  decreaseSizeBtn?.addEventListener('click', () => {
-    if (currentFontSize > 16) {
-      currentFontSize -= 2;
-      updateFontSize(currentFontSize);
-    }
-  });
-
-  increaseSizeBtn?.addEventListener('click', () => {
-    if (currentFontSize < 28) {
-      currentFontSize += 2;
-      updateFontSize(currentFontSize);
-    }
-  });
-
-  // Theme toggle
-  themeToggle?.addEventListener('click', () => {
-    const html = document.documentElement;
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    
-    if (themeToggle) {
-      themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
-    }
-  });
-
-  // Auto-hide header on scroll
-  let lastScrollY = 0;
-  let ticking = false;
-
-  function updateHeader() {
-    const header = document.querySelector('.header');
-    const scrollY = window.scrollY;
-    
-    if (scrollY > lastScrollY && scrollY > 100) {
-      // Scrolling down & past header height
-      header?.classList.add('hidden');
-    } else {
-      // Scrolling up or at top
-      header?.classList.remove('hidden');
-    }
-    
-    lastScrollY = scrollY;
-    ticking = false;
-  }
-
-  function onScroll() {
-    if (!ticking) {
-      requestAnimationFrame(updateHeader);
-      ticking = true;
-    }
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-    // Initialize settings from localStorage
-    console.log('DOM loaded, initializing font settings');
-    console.log('Elements found:', { fontSelect, letterBody });
-    
-    // Font preference
-    const savedFont = localStorage.getItem('preferred-font') || 'lora';
-    console.log('Saved font:', savedFont);
-    
     if (fontSelect) {
-      fontSelect.value = savedFont;
-      console.log('Applying saved font:', savedFont);
-      if (letterBody) {
-        // Define font families for each option (same as above)
-        const fontMap = {
-          'lora': "'Lora', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Minion Pro', 'Hoefler Text', Georgia, serif",
-          'liberation': "'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', Georgia, serif",
-          'iowan': "'Iowan Old Style', 'New York', 'Apple Garamond', 'Baskerville', Georgia, serif",
-          'palatino': "'Palatino Linotype', 'Palatino', 'Book Antiqua', 'URW Palladio L', Georgia, serif",
-          'georgia': "Georgia, 'Nimbus Roman', 'Liberation Serif', serif",
-          'system-sans': "-apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', 'DejaVu Sans', system-ui, sans-serif",
-          'sf-pro': "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Liberation Sans', system-ui, sans-serif"
-        };
-        
-        // Apply font directly via inline style
-        const fontFamily = fontMap[savedFont] || fontMap['lora'];
-        letterBody.style.fontFamily = fontFamily;
-        console.log('Applied initial font-family:', fontFamily);
+      var saved = localStorage.getItem('preferred-font') || 'source-serif';
+      fontSelect.value = saved;
+      applyFont(saved);
+      fontSelect.addEventListener('change', function(e) { applyFont(e.target.value); });
+    }
+
+    if (decreaseBtn) decreaseBtn.addEventListener('click', function() { applySize(fontSize - 2); });
+    if (increaseBtn) increaseBtn.addEventListener('click', function() { applySize(fontSize + 2); });
+
+    applySize(fontSize);
+
+    // Reading mode
+    var readingModeBtn = document.getElementById('readingModeBtn');
+    var readingModeActive = localStorage.getItem('reading-mode') === 'on';
+    function applyReadingMode(active) {
+      readingModeActive = active;
+      document.body.classList.toggle('reading-mode', active);
+      if (readingModeBtn) {
+        readingModeBtn.textContent = active ? 'On' : 'Off';
+        readingModeBtn.setAttribute('data-active', active ? 'true' : 'false');
       }
+      localStorage.setItem('reading-mode', active ? 'on' : 'off');
+    }
+    applyReadingMode(readingModeActive);
+    if (readingModeBtn) {
+      readingModeBtn.addEventListener('click', function() { applyReadingMode(!readingModeActive); });
     }
 
-    // Font size preference
-    const savedSize = localStorage.getItem('font-size');
-    if (savedSize) {
-      currentFontSize = parseInt(savedSize);
-      updateFontSize(currentFontSize);
+    // Footnotes toggle
+    var footnotesBtn = document.getElementById('footnotesBtn');
+    var footnotesShown = localStorage.getItem('footnotes-hidden') !== 'yes';
+    function applyFootnotes(shown) {
+      footnotesShown = shown;
+      document.body.classList.toggle('no-footnotes', !shown);
+      if (footnotesBtn) {
+        footnotesBtn.textContent = shown ? 'Shown' : 'Hidden';
+        footnotesBtn.setAttribute('data-active', shown ? 'true' : 'false');
+      }
+      localStorage.setItem('footnotes-hidden', shown ? 'no' : 'yes');
+    }
+    applyFootnotes(footnotesShown);
+    if (footnotesBtn) {
+      footnotesBtn.addEventListener('click', function() { applyFootnotes(!footnotesShown); });
     }
 
-    // Theme preference
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    if (themeToggle) {
-      themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    if (progressBar) {
+      var ticking = false;
+      function updateProgress() {
+        var scrollTop = window.scrollY;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        if (docHeight > 0) {
+          progressBar.style.width = Math.min(100, (scrollTop / docHeight) * 100) + '%';
+        }
+        ticking = false;
+      }
+      window.addEventListener('scroll', function() {
+        if (!ticking) { requestAnimationFrame(updateProgress); ticking = true; }
+      }, { passive: true });
+      updateProgress();
     }
 
     // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      // Ctrl/Cmd + Plus to increase font size
-      if ((e.ctrlKey || e.metaKey) && e.key === '=') {
-        e.preventDefault();
-        if (currentFontSize < 24) {
-          currentFontSize += 2;
-          updateFontSize(currentFontSize);
-        }
-      }
-      
-      // Ctrl/Cmd + Minus to decrease font size
-      if ((e.ctrlKey || e.metaKey) && e.key === '-') {
-        e.preventDefault();
-        if (currentFontSize > 14) {
-          currentFontSize -= 2;
-          updateFontSize(currentFontSize);
-        }
-      }
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      if (e.key === '+' || e.key === '=') { applySize(fontSize + 2); }
+      if (e.key === '-') { applySize(fontSize - 2); }
     });
 
-  } // End of initFontSelector function
-
-  // Try different approaches to ensure DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFontSelector);
-  } else {
-    // DOM is already loaded
-    initFontSelector();
-  }
+    // Smooth scroll for footnote links on mobile
+    document.querySelectorAll('.fnref a').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        if (window.innerWidth >= 1200) { e.preventDefault(); }
+      });
+    });
+  })();
 </script>

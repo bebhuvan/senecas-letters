@@ -2,635 +2,969 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import lettersData from '../data/all_letters.json';
+import enhancedIndexRaw from '../../public/enhanced-index.json';
+import { createSlug, cleanTitle, titleCase, getLetterUrl, readingTime, toRoman } from '../utils/text';
 
-// SEO-friendly slug generator
-function createSlug(title: string): string {
-  return title.toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim();
-}
+const enhancedIndex = enhancedIndexRaw as {
+  letters: Array<{
+    n: number; t: string; p: string; th: string;
+    k: string[]; meta: { length: string; difficulty: string; wordCount: number };
+    collections: string[]; timeline: { year: string; season: string } | null;
+  }>;
+  collections: Record<string, { letters: number[]; description: string; difficulty: string }>;
+  timeline: Array<{ year: string; season: string; letters: number[] }>;
+};
+
+// Stats
+const totalWords = enhancedIndex.letters.reduce((s, l) => s + l.meta.wordCount, 0);
+
+// Letter I preview
+const letterOne = lettersData.letters.find(l => l.number === 1);
+const letterOneOpening = letterOne?.content
+  .split('\n\n')[0]
+  .replace(/^1\.\s+/, '')
+  .replace(/\[\d+\]/g, '')
+  .replace(/\n/g, ' ')
+  .trim() ?? '';
+
+// Featured letters
+const featuredNumbers = [77, 48, 16, 3, 47];
+const featured = featuredNumbers
+  .map(n => enhancedIndex.letters.find(l => l.n === n)!)
+  .filter(Boolean);
+
+// Collections with letter samples
+const collectionsWithSamples = Object.entries(enhancedIndex.collections).map(([name, data]) => {
+  const samples = data.letters.slice(0, 3).map(n => {
+    const l = enhancedIndex.letters.find(x => x.n === n);
+    return l ? titleCase(cleanTitle(l.t)) : '';
+  }).filter(Boolean);
+  return { name, data, samples };
+});
+
+// Timeline
+const timeline = enhancedIndex.timeline;
+
+// All letter slugs for random letter
+const allLetterSlugs = enhancedIndex.letters.map(l => `${l.n}-${createSlug(cleanTitle(l.t))}`);
+const collectionNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 ---
 
-<Layout 
-  title="Seneca's Letters to Lucilius - Timeless Stoic Wisdom"
-  description="Discover Seneca's profound letters to Lucilius - 124 philosophical letters on virtue, mortality, and the art of living well. Timeless Stoic wisdom for modern life."
+<Layout
+  title="Seneca's Letters to Lucilius — Timeless Stoic Wisdom"
+  description="Discover Seneca's 124 philosophical letters to Lucilius — on virtue, mortality, friendship, and the art of living well."
   canonical="/"
 >
   <Header currentPath="/" />
-  
+
   <main>
-    <!-- Hero Section -->
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!--  HERO — TITLE PAGE                         -->
+    <!-- ═══════════════════════════════════════════ -->
     <section class="hero">
-      <div class="container">
-        <h1>Seneca's Letters to Lucilius</h1>
-        <p class="subtitle">Timeless wisdom for modern life</p>
-        <p class="meta">124 letters • Written 63-65 CE</p>
+      <div class="hero__inner">
+        <p class="hero__eyebrow">Lucius Annaeus Seneca · 4 BCE – 65 CE</p>
+
+        <h1 class="hero__title">
+          <span class="hero__word">Letters</span>
+          <span class="hero__word hero__word--italic">to Lucilius</span>
+        </h1>
+
+        <p class="hero__desc">
+          One hundred and twenty-four philosophical letters on virtue,
+          mortality, friendship, and the art of living well — written
+          in the final years of a life at the very centre of Roman power.
+        </p>
+
+        <div class="hero__stats">
+          <span class="hero__stat">
+            <strong>{124}</strong>
+            <small>Letters</small>
+          </span>
+          <span class="hero__dot" aria-hidden="true"></span>
+          <span class="hero__stat">
+            <strong>63–65 CE</strong>
+            <small>Written</small>
+          </span>
+          <span class="hero__dot" aria-hidden="true"></span>
+          <span class="hero__stat">
+            <strong>{Math.round(totalWords / 1000)}k</strong>
+            <small>Words</small>
+          </span>
+          <span class="hero__dot" aria-hidden="true"></span>
+          <span class="hero__stat">
+            <strong>1,044</strong>
+            <small>Footnotes</small>
+          </span>
+        </div>
+
+        <div class="hero__ctas">
+          <a href="/letters/1-on-saving-time" class="hero__cta hero__cta--primary">
+            Begin with Letter I
+          </a>
+          <span class="hero__cta-sep" aria-hidden="true">·</span>
+          <a href="/library" class="hero__cta">
+            Browse all 124
+          </a>
+          <span class="hero__cta-sep" aria-hidden="true">·</span>
+          <button class="hero__cta hero__cta--random" id="randomLetterBtn" type="button">
+            Random letter
+          </button>
+        </div>
       </div>
+
     </section>
 
-    <!-- Pitch Section -->
-    <section class="pitch">
+    <!-- ═══════════════════════════════════════════ -->
+    <!--  LETTER I — OPENING PAGE                   -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="opening">
       <div class="container">
-        <div class="pitch-content">
-          <h2>Philosophy for Living</h2>
-          <div class="pitch-text">
-            <p>
-              Written in his final years, these letters contain the distilled wisdom of a man who navigated 
-              the heights of power and the depths of exile, who counseled emperors and faced his own mortality 
-              with courage. Seneca offers not theories, but tested truths—philosophy forged in the crucible 
-              of real experience.
-            </p>
-            <p>
-              Here you will find answers to the questions that matter most: How do we live with purpose? 
-              How do we face loss, uncertainty, and death itself? How do we become who we are meant to be? 
-              These letters transform ancient wisdom into daily practice, offering guidance as relevant today 
-              as it was two millennia ago.
-            </p>
+        <div class="opening__layout">
+          <div class="opening__annotation">
+            <span class="opening__numeral">I</span>
+            <span class="opening__label">On Saving Time</span>
+            <span class="opening__meta">Letter I · 5 min</span>
+          </div>
+          <div class="opening__body">
+            <p class="opening__text">{letterOneOpening}</p>
+            <a href="/letters/1-on-saving-time" class="opening__cta">
+              Continue reading
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+            </a>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Essential Letters Section -->
-    <section class="featured">
+    <!-- ═══════════════════════════════════════════ -->
+    <!--  DISPATCH — FEATURED LETTERS               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="dispatch">
       <div class="container">
-        <div class="section-header">
-          <h2 class="section-title">Essential Letters</h2>
-          <p class="section-subtitle">A curated selection of Seneca's most profound insights</p>
-        </div>
-        
-        <div class="featured-grid">
-          <!-- Featured large card -->
-          <article class="featured-card large">
-            <div class="card-content">
-              <div class="letter-number">Letter 16</div>
-              <h3 class="letter-title">On Philosophy, the Guide of Life</h3>
-              <p class="letter-excerpt">
-                "Philosophy is no trick to catch the public; it is not devised for show. It is a matter, not of words, 
-                but of facts. It sits at the helm and directs our course as we waver amid uncertainties."
-              </p>
-              <p class="letter-context">
-                The manifesto of practical philosophy. Seneca establishes what true philosophy is—not academic 
-                sophistry, but a living guide for navigating life's uncertainties and challenges.
-              </p>
-              <a href="/letters/16-on-philosophy-the-guide-of-life" class="read-more">Read Letter →</a>
-            </div>
-          </article>
+        <header class="dispatch__head">
+          <h2 class="dispatch__title">Begin Here</h2>
+          <a href="/library" class="dispatch__more">All 124 letters →</a>
+        </header>
 
-          <!-- Secondary large card -->
-          <article class="featured-card large">
-            <div class="card-content">
-              <div class="letter-number">Letter 1</div>
-              <h3 class="letter-title">On the Proper Use of Time</h3>
-              <p class="letter-excerpt">
-                "Nothing, Lucilius, is ours, except time. We were entrusted by nature with the ownership of this 
-                single thing, so fleeting and slippery that anyone who will can oust us from possession."
-              </p>
-              <p class="letter-context">
-                Seneca opens his correspondence with the most fundamental question: how do we use our time? 
-                This foundational letter establishes the urgency and purpose of philosophical practice.
-              </p>
-              <a href="/letters/1-on-saving-time" class="read-more">Read Letter →</a>
-            </div>
-          </article>
-
-          <!-- Smaller vertical cards -->
-          <article class="featured-card small">
-            <div class="card-content">
-              <div class="letter-number">Letter 2</div>
-              <h3 class="letter-title">On Discursiveness in Reading</h3>
-              <p class="letter-excerpt">
-                "You must linger among a limited number of master-thinkers, and digest their works. 
-                Everywhere means nowhere."
-              </p>
-              <a href="/letters/2-on-discursiveness-in-reading" class="read-more">Read →</a>
-            </div>
-          </article>
-
-          <article class="featured-card small">
-            <div class="card-content">
-              <div class="letter-number">Letter 23</div>
-              <h3 class="letter-title">On the True Joy Which Comes from Philosophy</h3>
-              <p class="letter-excerpt">
-                "Real joy is a stern matter. The joy of which I speak is something solid, disclosing itself 
-                the more fully as you penetrate into it."
-              </p>
-              <a href="/letters/23-on-the-true-joy-which-comes-from-philosophy" class="read-more">Read →</a>
-            </div>
-          </article>
-
-          <article class="featured-card small">
-            <div class="card-content">
-              <div class="letter-number">Letter 48</div>
-              <h3 class="letter-title">On Quibbling as Unworthy of the Philosopher</h3>
-              <p class="letter-excerpt">
-                "Philosophy offers counsel. You are retained as counsel for unhappy mankind. 
-                Men are stretching out imploring hands to you on all sides."
-              </p>
-              <a href="/letters/48-on-quibbling-as-unworthy-of-the-philosopher" class="read-more">Read →</a>
-            </div>
-          </article>
+        <div class="dispatch__grid">
+          {featured.map((letter, i) => {
+            const title = titleCase(cleanTitle(letter.t));
+            const excerpt = letter.p.replace(/^\d+\.\s+/, '').replace(/\[\d+\]/g, '').substring(0, 140).trim();
+            return (
+              <a href={getLetterUrl(letter.n, letter.t)} class={`dispatch__item dispatch__item--${i === 0 ? 'lead' : 'secondary'}`}>
+                <div class="dispatch__item-header">
+                  <span class="dispatch__numeral">{toRoman(letter.n)}</span>
+                  <span class="dispatch__time">{readingTime(letter.meta.wordCount)}</span>
+                </div>
+                <h3 class="dispatch__item-title">{title}</h3>
+                <p class="dispatch__item-theme">{letter.th}</p>
+                {i === 0 && <p class="dispatch__item-excerpt">{excerpt}…</p>}
+                {i === 0 && <span class="dispatch__item-read" aria-hidden="true">Read this letter →</span>}
+              </a>
+            );
+          })}
         </div>
       </div>
     </section>
 
-    <!-- Complete Archive Preview -->
-    <section class="archive-preview">
+    <!-- ═══════════════════════════════════════════ -->
+    <!--  READING PATHS                             -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="paths">
       <div class="container">
-        <div class="section-header">
-          <h2 class="section-title">The Collection</h2>
-          <p class="section-subtitle">124 letters on philosophy, virtue, and the art of living well</p>
-        </div>
-        
-        <div class="archive-feed">
-          <a href="/letters/1-on-saving-time" class="letter-item">
-            <div class="letter-meta">
-              <span class="number">Letter 1</span>
-            </div>
-            <h3 class="title">On the Proper Use of Time</h3>
-            <p class="preview">Greetings from Seneca to his friend Lucilius. Continue to act thus, my dear Lucilius—set yourself free for your own sake; gather and save your time...</p>
-          </a>
-          
-          <a href="/letters/2-on-discursiveness-in-reading" class="letter-item">
-            <div class="letter-meta">
-              <span class="number">Letter 2</span>
-            </div>
-            <h3 class="title">On Discursiveness in Reading</h3>
-            <p class="preview">Judging by what you write me, and by what I hear, I am forming a good opinion regarding your future...</p>
-          </a>
-          
-          <a href="/letters/3-on-true-and-false-friendship" class="letter-item">
-            <div class="letter-meta">
-              <span class="number">Letter 3</span>
-            </div>
-            <h3 class="title">On True and False Friendship</h3>
-            <p class="preview">You have sent a letter to me through the hand of a friend of yours, as you call him. Then you warn me not to discuss with him all the matters that concern you...</p>
-          </a>
-          
-          <a href="/letters/4-on-the-terrors-of-death" class="letter-item">
-            <div class="letter-meta">
-              <span class="number">Letter 4</span>
-            </div>
-            <h3 class="title">On the Terrors of Death</h3>
-            <p class="preview">Every new thing excites the mind, but a thing which is familiar becomes an object of contempt. This contempt, however, does not extend to the matter of fearing death...</p>
-          </a>
-          
-          <a href="/letters/5-the-philosophers-mean" class="letter-item">
-            <div class="letter-meta">
-              <span class="number">Letter 5</span>
-            </div>
-            <h3 class="title">On the Philosopher's Mean</h3>
-            <p class="preview">I commend you and rejoice in the fact that you are persistent in your studies, and that, putting all else aside, you make it each day your single endeavor to become a better man than you were...</p>
-          </a>
-          
-          <a href="/letters/6-on-sharing-knowledge" class="letter-item">
-            <div class="letter-meta">
-              <span class="number">Letter 6</span>
-            </div>
-            <h3 class="title">On Sharing Knowledge</h3>
-            <p class="preview">I feel, my dear Lucilius, that I am being not only reformed, but transformed. I do not yet, however, assure yourself free to derive the value that has been proved to me.</p>
-          </a>
-        </div>
-        
-        <div class="view-all">
-          <a href="/library" class="view-all-btn">
-            <span>Explore All 124 Letters</span>
-            <span class="arrow">→</span>
-          </a>
+        <header class="paths__head">
+          <h2 class="paths__title">Reading Paths</h2>
+        </header>
+
+        <div class="paths__grid">
+          {collectionsWithSamples.map(({ name, data, samples }, idx) => (
+            <a
+              href={`/library?collection=${encodeURIComponent(name)}`}
+              class="path-card"
+            >
+              <div class="path-card__header">
+                <span class="path-card__num">{collectionNumerals[idx] ?? String(idx + 1)}</span>
+                <span class="path-card__count">{data.letters.length} letters</span>
+              </div>
+              <div class="path-card__name">{name}</div>
+              <p class="path-card__desc">{data.description}</p>
+              {samples.length > 0 && (
+                <div class="path-card__samples">
+                  {samples.map(s => (
+                    <span class="path-card__sample">{s}</span>
+                  ))}
+                </div>
+              )}
+            </a>
+          ))}
         </div>
       </div>
     </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!--  TIMELINE                                  -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="timeline-section">
+      <div class="container">
+        <header class="timeline__head">
+          <h2 class="timeline__title">When They Were Written</h2>
+        </header>
+
+        <div class="timeline">
+          {timeline.map((period, i) => (
+            <a
+              href={`/library?period=${encodeURIComponent(period.season)}`}
+              class="timeline__seg"
+              style={`flex-grow: ${period.letters.length}`}
+            >
+              <div class="timeline__seg-inner">
+                <span class="timeline__seg-year">{period.year}</span>
+                <span class="timeline__seg-season">{period.season}</span>
+              </div>
+              <span class="timeline__seg-count">{period.letters.length}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <Footer />
 </Layout>
 
+<script is:inline define:vars={{ allLetterSlugs }}>
+  document.getElementById('randomLetterBtn')?.addEventListener('click', function() {
+    var slugs = allLetterSlugs;
+    var slug = slugs[Math.floor(Math.random() * slugs.length)];
+    window.location.href = '/letters/' + slug;
+  });
+</script>
+
 <style>
-  /* Color Variables */
-  :root {
-    --terracotta: #B87333;
-    --terracotta-light: rgba(184, 115, 51, 0.05);
-  }
 
-  /* Hero Section */
+  /* ═══════════════════════════════════════════════ */
+  /*  HERO — TITLE PAGE                             */
+  /* ═══════════════════════════════════════════════ */
+
   .hero {
-    padding: 4rem 0 3rem;
-    text-align: center;
-    background: var(--background);
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-20) var(--space-8);
     position: relative;
+    text-align: center;
   }
 
-  .hero h1 {
-    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
-    font-weight: 300;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', 'New York', ui-serif, 'Iowan Old Style', 'Apple Garamond', 'Baskerville', 'Times New Roman', 'Droid Serif', 'Times', serif;
+  .hero__inner {
+    max-width: 720px;
+    width: 100%;
   }
 
-  .hero .subtitle {
-    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
-    color: var(--text-secondary);
-    margin-bottom: 1.25rem;
+  .hero__eyebrow {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
     font-weight: 400;
-    font-style: normal;
-    letter-spacing: 0.01em;
-    opacity: 0.9;
-  }
-
-  .hero .meta {
-    font-size: 0.875rem;
-    color: var(--terracotta);
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-weight: 500;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
-  }
-  
-  .hero .meta::before {
-    content: '';
-    display: inline-block;
-    width: 30px;
-    height: 1px;
-    background: var(--terracotta);
-    margin-right: 1rem;
-    vertical-align: middle;
-    opacity: 0.4;
-  }
-
-  /* Pitch Section */
-  .pitch {
-    padding: 0 0 4rem;
-    background: var(--surface);
-  }
-
-  .pitch-content {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .pitch h2 {
-    font-size: 2rem;
-    font-weight: 300;
-    color: var(--text-primary);
-    margin-bottom: 2rem;
-    text-align: center;
-    letter-spacing: -0.01em;
-    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', 'New York', ui-serif, 'Iowan Old Style', 'Apple Garamond', 'Baskerville', 'Times New Roman', 'Droid Serif', 'Times', serif;
-  }
-
-  .pitch-text p {
-    font-size: 1.125rem;
-    line-height: 1.9;
-    color: var(--text-secondary);
-    margin-bottom: 2.25rem;
-    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', ui-serif, 'Iowan Old Style', 'Apple Garamond', 'Baskerville', 'Times New Roman', 'Droid Serif', 'Times', serif;
-    letter-spacing: 0.01em;
-  }
-
-
-  .pitch-text p:last-child {
-    margin-bottom: 0;
-  }
-  
-
-  /* Featured Section */
-  .featured {
-    padding: 4rem 0 3rem;
-    background: var(--background);
-  }
-
-  .section-header {
-    text-align: center;
-    margin-bottom: 3rem;
-  }
-
-  .section-title {
-    font-size: 2.25rem;
-    font-weight: 300;
-    color: var(--text-primary);
-    margin-bottom: 1.25rem;
-    letter-spacing: -0.01em;
-    position: relative;
-    padding-bottom: 1.5rem;
-    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', 'New York', ui-serif, 'Iowan Old Style', 'Apple Garamond', 'Baskerville', 'Times New Roman', 'Droid Serif', 'Times', serif;
-  }
-  
-  .section-title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 1px;
-    background: var(--terracotta);
-    opacity: 0.4;
-  }
-
-  .section-subtitle {
-    font-size: 1rem;
+    letter-spacing: 0.18em;
     color: var(--text-muted);
-    font-style: normal;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-weight: 400;
-    letter-spacing: 0.02em;
+    margin-bottom: var(--space-8);
   }
 
-  .featured-grid {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .featured-card {
-    background: var(--surface);
-    overflow: hidden;
-    border: 1px solid var(--divider);
-    position: relative;
-  }
-
-  .featured-card.large:first-child {
-    grid-column: span 8;
-  }
-
-  .featured-card.large:nth-child(2) {
-    grid-column: span 4;
-  }
-
-  .featured-card.small {
-    grid-column: span 4;
-  }
-
-  .card-content {
-    padding: 2rem;
-  }
-
-  .featured-card.small .card-content {
-    padding: 1.5rem;
-  }
-
-  .letter-number {
-    color: var(--terracotta);
-    font-size: 0.75rem;
-    font-weight: 500;
-    margin-bottom: 1.25rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-
-  .letter-title {
-    font-size: 1.5rem;
+  .hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(4.5rem, 13vw, 9.5rem);
+    font-weight: 300;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
     color: var(--text-primary);
-    margin-bottom: 1.25rem;
-    line-height: 1.35;
-    font-weight: 400;
-    font-family: 'Crimson Text', Georgia, serif;
-    letter-spacing: -0.01em;
+    margin-bottom: var(--space-8);
   }
 
-  .featured-card.small .letter-title {
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
-  }
-
-  .letter-excerpt {
-    color: var(--text-secondary);
-    line-height: 1.75;
-    margin-bottom: 1.75rem;
-    font-size: 1rem;
-    font-style: italic;
-    font-family: Georgia, serif;
-    letter-spacing: 0.01em;
-    position: relative;
-    padding-left: 1.25rem;
-    border-left: 2px solid var(--terracotta-light);
-  }
-
-  .letter-excerpt::before {
-    content: '"';
-    position: absolute;
-    left: -0.1rem;
-    top: -0.25rem;
-    font-size: 2.5rem;
-    color: var(--terracotta);
-    opacity: 0.15;
-    font-family: 'Times New Roman', serif;
-    line-height: 1;
-    pointer-events: none;
-    font-weight: 400;
-    transform: translateX(-2px);
-  }
-
-  .featured-card.small .letter-excerpt {
-    padding-left: 1rem;
-  }
-
-  .featured-card.small .letter-excerpt::before {
-    font-size: 2rem;
-    left: -0.05rem;
-    top: -0.15rem;
-  }
-
-  .letter-context {
-    color: var(--text-muted);
-    line-height: 1.65;
-    margin-bottom: 2rem;
-    font-size: 0.9rem;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-
-  .read-more {
-    color: var(--terracotta);
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  /* Archive Preview */
-  .archive-preview {
-    padding: 3rem 0 5rem;
-    background: var(--surface);
-  }
-
-  .archive-feed {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-    margin-bottom: 3rem;
-  }
-
-  .letter-item {
-    padding: 2rem;
-    border: 1px solid var(--divider);
-    text-decoration: none;
+  .hero__word {
     display: block;
-    position: relative;
-    background: var(--surface);
-    border-radius: 6px;
-    overflow: hidden;
   }
 
-  .letter-meta {
+  .hero__word--italic {
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  .hero__desc {
+    font-family: var(--font-serif);
+    font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
+    color: var(--text-secondary);
+    line-height: 1.8;
+    max-width: 480px;
+    margin: 0 auto var(--space-10);
+  }
+
+  /* Stat bar */
+  .hero__stats {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+    flex-wrap: wrap;
+  }
+
+  .hero__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .hero__stat strong {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .hero__stat small {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-style: normal;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .hero__dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--border-primary);
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    align-self: flex-end;
+  }
+
+  /* CTAs */
+  .hero__ctas {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
+    justify-content: center;
+    gap: var(--space-5);
   }
 
-  .letter-meta .number {
-    color: var(--terracotta);
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
+  .hero__cta {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
     text-transform: uppercase;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--terracotta-light);
-    padding: 0.25rem 0.5rem;
-    border-radius: 3px;
-  }
-
-  .letter-meta .theme {
+    letter-spacing: 0.14em;
+    font-weight: 500;
     color: var(--text-muted);
-    font-size: 0.75rem;
-    font-family: 'Inter', sans-serif;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .hero__cta--primary {
+    color: var(--color-accent);
+    border-bottom: 1px solid var(--color-accent);
+    padding-bottom: 2px;
+  }
+
+  .hero__cta:hover {
+    color: var(--text-primary);
+  }
+
+  .hero__cta--primary:hover {
+    color: var(--color-accent);
+    border-bottom-color: transparent;
+  }
+
+  .hero__cta--random {
+    cursor: pointer;
+  }
+
+  .hero__cta-sep {
+    color: var(--border-primary);
+    font-size: var(--text-lg);
+    line-height: 1;
+  }
+
+  /* ═══════════════════════════════════════════════ */
+  /*  LETTER I OPENING                              */
+  /* ═══════════════════════════════════════════════ */
+
+  .opening {
+    padding: var(--space-24) 0;
+    background: var(--bg-secondary);
+  }
+
+  .opening__layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: var(--space-12);
+    align-items: start;
+    max-width: 900px;
+  }
+
+  .opening__annotation {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-top: var(--space-2);
+    text-align: right;
+    border-right: 1px solid var(--border-primary);
+    padding-right: var(--space-10);
+  }
+
+  .opening__numeral {
+    font-family: var(--font-display);
+    font-size: 4rem;
+    font-weight: 300;
+    color: var(--color-accent);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .opening__label {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.2;
+  }
+
+  .opening__meta {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    margin-top: var(--space-2);
+  }
+
+  .opening__body {
+    min-width: 0;
+  }
+
+  .opening__text {
+    font-family: var(--font-serif);
+    font-size: 1.1875rem;
+    line-height: 1.85;
+    color: var(--text-primary);
+    margin-bottom: var(--space-8);
+    /* Drop cap */
+    &::first-letter {
+      float: left;
+      font-family: var(--font-display);
+      font-size: 4.5em;
+      line-height: 0.78;
+      font-weight: 300;
+      color: var(--color-accent);
+      padding-right: 0.06em;
+      margin-top: 0.04em;
+    }
+  }
+
+  .opening__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: gap var(--duration-normal) ease;
+  }
+
+  .opening__cta:hover {
+    gap: 10px;
+  }
+
+
+  /* ═══════════════════════════════════════════════ */
+  /*  DISPATCH — FEATURED                           */
+  /* ═══════════════════════════════════════════════ */
+
+  .dispatch {
+    padding: var(--space-24) 0;
+  }
+
+  .dispatch__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--space-10);
+  }
+
+  .dispatch__title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-style: italic;
     font-weight: 400;
+    color: var(--text-primary);
+    letter-spacing: -0.015em;
+  }
+
+  .dispatch__title::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 2px;
+    background: var(--color-accent);
+    margin-bottom: var(--space-4);
+  }
+
+  .dispatch__more {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    padding: 0.25rem 0.75rem;
-    background: var(--terracotta-light);
-    border-radius: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--duration-fast) ease;
   }
 
-  .letter-item .title {
-    color: var(--text-primary);
-    font-size: 1.4rem;
-    margin-bottom: 0.75rem;
-    line-height: 1.3;
+  .dispatch__more:hover {
+    color: var(--color-accent);
+  }
+
+  /* Two-column magazine grid: lead + 4 secondary */
+  .dispatch__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 1px;
+    background: var(--border-light);
+  }
+
+  .dispatch__item {
+    background: var(--bg-primary);
+    padding: var(--space-8);
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    transition: background var(--duration-normal) ease;
+  }
+
+  .dispatch__item:hover {
+    background: var(--color-accent-subtle);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.03);
+  }
+
+  /* Lead item spans full left column */
+  .dispatch__item--lead {
+    grid-row: 1 / 3;
+    padding: var(--space-12);
+    border-left: 2px solid var(--color-accent);
+  }
+
+  .dispatch__item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+  }
+
+  .dispatch__numeral {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .dispatch__item:hover .dispatch__numeral {
+    color: var(--color-accent);
+  }
+
+  .dispatch__item--lead .dispatch__numeral {
+    font-size: 3.5rem;
+    color: var(--color-accent);
+  }
+
+  .dispatch__time {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+
+  .dispatch__item-title {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
     font-weight: 400;
-    font-family: 'Crimson Text', Georgia, serif;
-    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    line-height: 1.3;
+    transition: color var(--duration-fast) ease;
   }
 
-  .letter-item .preview {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.65;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    font-family: Georgia, serif;
+  .dispatch__item--lead .dispatch__item-title {
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    margin-bottom: var(--space-1);
+  }
+
+  .dispatch__item-theme {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
     letter-spacing: 0.01em;
   }
 
-  .view-all {
-    text-align: center;
-    margin-top: 4rem;
+  .dispatch__item-excerpt {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-top: var(--space-3);
+    max-width: 520px;
   }
 
-  .view-all-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 2rem;
-    background: transparent;
-    color: var(--terracotta);
-    text-decoration: none;
-    font-weight: 500;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    letter-spacing: 0.05em;
-    border: 1px solid var(--terracotta);
+  .dispatch__item-read {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
     text-transform: uppercase;
-    font-size: 0.875rem;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+    margin-top: auto;
+    padding-top: var(--space-5);
   }
 
-  .view-all-btn .arrow {
-    transition: transform 0.3s ease;
+  .dispatch__item--secondary .dispatch__item-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
   }
 
-  .view-all-btn:hover .arrow {
-    transform: translateX(0.25rem);
+
+  /* ═══════════════════════════════════════════════ */
+  /*  READING PATHS                                 */
+  /* ═══════════════════════════════════════════════ */
+
+  .paths {
+    padding: var(--space-24) 0;
+    background: var(--color-accent-subtle);
   }
 
-  /* Responsive */
-  @media (max-width: 1024px) {
-    .featured-grid {
-      grid-template-columns: repeat(8, 1fr);
+  .paths__head {
+    margin-bottom: var(--space-10);
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-5);
+  }
+
+  .paths__title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--text-primary);
+    letter-spacing: -0.015em;
+  }
+
+  .paths__title::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 2px;
+    background: var(--color-accent);
+    margin-bottom: var(--space-4);
+  }
+
+  .paths__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: transparent;
+    max-width: 900px;
+  }
+
+  .path-card {
+    background: var(--bg-primary);
+    padding: var(--space-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: box-shadow var(--duration-normal) ease, border-color var(--duration-normal) ease;
+  }
+
+  .path-card:hover {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-left-color: var(--color-accent);
+  }
+
+  .path-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .path-card__num {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--color-accent);
+    letter-spacing: 0.08em;
+  }
+
+  .path-card__count {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+
+  .path-card__name {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    line-height: 1.2;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .path-card:hover .path-card__name {
+    color: var(--color-accent);
+  }
+
+  .path-card__desc {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  .path-card__samples {
+    border-top: 1px solid var(--border-light);
+    padding-top: var(--space-3);
+    margin-top: auto;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .path-card__sample {
+    display: inline;
+  }
+
+  .path-card__sample:not(:last-child)::after {
+    content: ', ';
+    font-style: normal;
+  }
+
+
+  /* ═══════════════════════════════════════════════ */
+  /*  TIMELINE                                      */
+  /* ═══════════════════════════════════════════════ */
+
+  .timeline-section {
+    padding: var(--space-24) 0;
+  }
+
+  .timeline__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-5);
+    margin-bottom: var(--space-10);
+  }
+
+  .timeline__title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--text-primary);
+    letter-spacing: -0.015em;
+  }
+
+  .timeline__title::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 2px;
+    background: var(--color-accent);
+    margin-bottom: var(--space-4);
+  }
+
+  .timeline {
+    display: flex;
+    max-width: 900px;
+  }
+
+  .timeline__seg {
+    flex: 1;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-decoration: none;
+    padding: var(--space-6) var(--space-5);
+    border-top: 2px solid var(--border-light);
+    position: relative;
+    transition: border-color var(--duration-normal) ease, background var(--duration-normal) ease;
+  }
+
+  .timeline__seg + .timeline__seg {
+    border-left: 1px solid var(--border-light);
+  }
+
+  .timeline__seg:hover {
+    border-top-color: var(--color-accent);
+    background: var(--color-accent-subtle);
+  }
+
+  .timeline__seg-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .timeline__seg-year {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .timeline__seg-season {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .timeline__seg-count {
+    font-family: var(--font-display);
+    font-size: 2.75rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .timeline__seg-count::after {
+    content: 'letters';
+    display: block;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+    letter-spacing: 0.04em;
+  }
+
+  .timeline__seg:hover .timeline__seg-count {
+    color: var(--color-accent);
+  }
+
+
+  /* ═══════════════════════════════════════════════ */
+  /*  RESPONSIVE                                    */
+  /* ═══════════════════════════════════════════════ */
+
+  @media (max-width: 900px) {
+    .opening__layout {
+      grid-template-columns: 140px 1fr;
+      gap: var(--space-8);
     }
-    
-    .featured-card.large:first-child {
-      grid-column: span 8;
+    .opening__annotation {
+      padding-right: var(--space-6);
     }
-    
-    .featured-card.large:nth-child(2) {
-      grid-column: span 8;
-    }
-    
-    .featured-card.small {
-      grid-column: span 4;
-    }
-    
-    .archive-feed {
-      grid-template-columns: 1fr;
+    .opening__numeral {
+      font-size: 2.75rem;
     }
   }
 
   @media (max-width: 768px) {
-    .hero {
-      padding: 3rem 0 2rem;
+    .hero__title {
+      font-size: clamp(3.5rem, 14vw, 5.5rem);
     }
 
-    .pitch {
-      padding: 1rem 0 4rem;
-    }
-
-    .pitch h2 {
-      font-size: 2rem;
-    }
-
-    .pitch-text p {
-      font-size: 1.1rem;
-    }
-
-    .featured {
-      padding: 4rem 0;
-    }
-
-    .featured-grid {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-    
-    .featured-card.large:first-child,
-    .featured-card.large:nth-child(2),
-    .featured-card.small {
-      grid-column: span 1;
-    }
-    
-    .archive-feed {
+    .opening__layout {
       grid-template-columns: 1fr;
     }
-
-    .card-content {
-      padding: 2rem;
+    .opening__annotation {
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--space-3);
+      text-align: left;
+      border-right: none;
+      border-bottom: 1px solid var(--border-light);
+      padding-right: 0;
+      padding-bottom: var(--space-4);
     }
-
-    .archive-preview {
-      padding: 4rem 0;
-    }
-
-    .section-title {
+    .opening__numeral {
       font-size: 2rem;
+    }
+    .opening__meta {
+      margin-top: 0;
+    }
+
+    .dispatch__grid {
+      grid-template-columns: 1fr;
+    }
+    .dispatch__item--lead {
+      grid-row: auto;
+      border-right: none;
+    }
+
+    .paths__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .timeline {
+      flex-wrap: wrap;
+    }
+    .timeline__seg {
+      flex: 0 0 calc(50% - 0.5px);
     }
   }
+
+  @media (max-width: 480px) {
+    .hero__stats {
+      gap: var(--space-2);
+    }
+    .hero__ctas {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .hero__cta-sep {
+      display: none;
+    }
+    .paths__head {
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+    .dispatch__head {
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+    .timeline__seg {
+      flex: 0 0 100%;
+    }
+  }
+
 </style>

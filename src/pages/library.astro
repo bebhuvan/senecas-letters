@@ -2,101 +2,83 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-
-// We'll load the enhanced index client-side to avoid SSR complexity
 ---
 
-<Layout title="Library - Letters to Lucilius">
+<Layout title="Library — Letters to Lucilius">
   <Header currentPath="/library" />
-  
+
   <main>
-    <!-- Library Header -->
-    <section class="library-header">
+    <section class="library">
       <div class="container">
-        <div class="header-content">
-          <h1>The Complete Journey</h1>
-          <p class="subtitle">Seneca's 124 letters written in his final years (63-65 CE)</p>
-          <p class="timeline-note">Follow the chronological path of wisdom, or explore by philosophical themes</p>
+
+        <!-- Header -->
+        <div class="library__head">
+          <div class="library__head-text">
+            <h1 class="library__title">Library</h1>
+            <p class="library__subtitle">124 letters on virtue, mortality, and the art of living</p>
+          </div>
+
+          <div class="library__search">
+            <input
+              type="text"
+              id="searchInput"
+              class="library__search-input"
+              placeholder="Search letters, themes, ideas…"
+              autocomplete="off"
+            />
+            <span class="library__search-hint">Press <kbd>/</kbd> to focus</span>
+          </div>
         </div>
-        
-        <!-- Search Bar -->
-        <div class="search-container">
-          <div class="search-wrapper">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search letters by content, theme, or number...">
-            <button class="search-button" type="button">
-              <span class="search-icon">🔍</span>
+
+        <!-- Toolbar -->
+        <div class="library__toolbar">
+          <div class="library__filters" id="filterPills">
+            <button class="library__pill active" data-filter="">All</button>
+            <button class="library__pill" data-filter="short">Brief</button>
+            <button class="library__pill" data-filter="medium">Standard</button>
+            <button class="library__pill" data-filter="long">Deep</button>
+          </div>
+
+          <div class="library__toolbar-right">
+            <button class="library__random" id="randomLetterBtn" title="Open a random letter">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12h4l6-8h4M11 4l4 0 0 4M11 12l4 0 0-4"/></svg>
+              Random
             </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- View Toggle & Filters -->
-    <section class="controls">
-      <div class="container">
-        <div class="view-controls">
-          <div class="view-toggle">
-            <button class="view-btn active" data-view="timeline">📅 Timeline</button>
-            <button class="view-btn" data-view="collections">📚 Collections</button>
-            <button class="view-btn" data-view="all">📋 All Letters</button>
-          </div>
-          
-          <div class="filters">
-            <select id="difficultyFilter" class="filter-select">
-              <option value="">All Levels</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
-            
-            <select id="lengthFilter" class="filter-select">
-              <option value="">All Lengths</option>
-              <option value="short">Short (~5 min)</option>
-              <option value="medium">Medium (~10 min)</option>
-              <option value="long">Long (~15+ min)</option>
-            </select>
-            
-            <select id="themeFilter" class="filter-select">
-              <option value="">All Themes</option>
-              <option value="Time & Life">Time & Life</option>
-              <option value="Philosophy">Philosophy</option>
-              <option value="Friendship">Friendship</option>
-              <option value="Death">Death</option>
-              <option value="Virtue">Virtue</option>
-            </select>
-          </div>
-        </div>
-        
-        <div id="resultCount" class="result-count"></div>
-      </div>
-    </section>
-
-    <!-- Content Area -->
-    <section class="content-area">
-      <div class="container">
-        <!-- Timeline View -->
-        <div id="timelineView" class="view-content active">
-          <div class="timeline-container" id="timelineContainer">
-            <!-- Timeline will be populated by JavaScript -->
-            <div class="loading-message">Loading timeline...</div>
+            <div id="resultCount" class="library__count"></div>
+            <div class="library__view-toggle">
+              <button class="library__view-btn active" data-view="list" aria-label="List view" title="List view">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                  <line x1="0" y1="3.5" x2="16" y2="3.5"/>
+                  <line x1="0" y1="8" x2="16" y2="8"/>
+                  <line x1="0" y1="12.5" x2="16" y2="12.5"/>
+                </svg>
+              </button>
+              <button class="library__view-btn" data-view="collections" aria-label="Collections view" title="Collections view">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="1" width="5.5" height="5.5" rx="0.75"/>
+                  <rect x="9.5" y="1" width="5.5" height="5.5" rx="0.75"/>
+                  <rect x="1" y="9.5" width="5.5" height="5.5" rx="0.75"/>
+                  <rect x="9.5" y="9.5" width="5.5" height="5.5" rx="0.75"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Collections View -->
-        <div id="collectionsView" class="view-content">
-          <div class="collections-grid" id="collectionsGrid">
-            <!-- Collections will be populated by JavaScript -->
-            <div class="loading-message">Loading collections...</div>
-          </div>
+        <!-- Letter list view -->
+        <div class="library__list" id="lettersList">
+          <div class="library__loading">Loading letters…</div>
         </div>
 
-        <!-- All Letters View -->
-        <div id="allView" class="view-content">
-          <div class="letters-grid" id="lettersGrid">
-            <!-- Letters will be populated by JavaScript -->
-            <div class="loading-message">Loading letters...</div>
-          </div>
+        <!-- Collections view -->
+        <div class="library__collections" id="collectionsView" style="display:none;"></div>
+
+        <!-- Empty state -->
+        <div class="library__empty" id="emptyState" style="display:none;">
+          <p class="library__empty-text">No letters found</p>
+          <p class="library__empty-hint">Try different terms or clear your filters</p>
         </div>
+
       </div>
     </section>
   </main>
@@ -105,791 +87,748 @@ import Footer from '../components/Footer.astro';
 </Layout>
 
 <style>
-  /* Header */
-  .library-header {
-    padding: 4rem 0 3rem;
-    background: var(--surface);
-    text-align: center;
+  .library {
+    padding: var(--space-12) 0 var(--space-24);
+    background: var(--bg-primary);
   }
 
-  .header-content {
-    margin-bottom: 3rem;
+  /* ── Header ── */
+  .library__head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-5);
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--border-primary);
   }
 
-  .library-header h1 {
-    font-size: clamp(2.5rem, 5vw, 4rem);
+  .library__title {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 8vw, 5.5rem);
     font-weight: 300;
     color: var(--text-primary);
-    margin-bottom: 1rem;
     letter-spacing: -0.02em;
-    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', serif;
+    line-height: 1;
   }
 
-  .library-header .subtitle {
-    font-size: 1.25rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.75rem;
-    font-weight: 300;
-  }
-
-  .timeline-note {
-    font-size: 1rem;
-    color: var(--text-muted);
+  .library__subtitle {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
     font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.6;
   }
 
-  /* Search */
-  .search-container {
-    max-width: 600px;
-    margin: 0 auto;
+  .library__search {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
   }
 
-  .search-wrapper {
-    display: flex;
-    align-items: center;
-    background: var(--background);
-    border: 2px solid var(--divider);
-    border-radius: 6px;
-    overflow: hidden;
-    transition: border-color 0.3s ease;
-  }
-
-  .search-wrapper:focus-within {
-    border-color: var(--terracotta);
-  }
-
-  .search-input {
-    flex: 1;
-    padding: 1.25rem 1.5rem;
-    border: none;
-    background: transparent;
-    font-size: 1rem;
+  .library__search-input {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-  }
-
-  .search-input:focus {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
     outline: none;
+    transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
   }
 
-  .search-input::placeholder {
+  .library__search-input::placeholder {
     color: var(--text-muted);
-    font-style: italic;
   }
 
-  .search-button {
-    padding: 1.25rem 1.5rem;
-    background: var(--terracotta);
-    border: none;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  .library__search-input:focus {
+    border-color: var(--text-secondary);
+    background: var(--bg-primary);
   }
 
-  .search-button:hover {
-    background-color: #b5561a;
-  }
-
-  /* Controls */
-  .controls {
-    padding: 2rem 0;
-    background: var(--background);
-    border-bottom: 1px solid var(--divider);
-  }
-
-  .view-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
-    margin-bottom: 1rem;
-  }
-
-  .view-toggle {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .view-btn {
-    padding: 0.75rem 1.5rem;
-    background: transparent;
-    border: 1px solid var(--divider);
-    color: var(--text-secondary);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    cursor: pointer;
-    border-radius: 20px;
-    transition: all 0.3s ease;
-  }
-
-  .view-btn.active,
-  .view-btn:hover {
-    background: var(--terracotta);
-    border-color: var(--terracotta);
-    color: white;
-  }
-
-  .filters {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .filter-select {
-    padding: 0.75rem 1rem;
-    background: var(--surface);
-    border: 1px solid var(--divider);
-    color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .filter-select:focus {
-    outline: none;
-    border-color: var(--terracotta);
-  }
-
-  .result-count {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-style: italic;
-  }
-
-  /* Content Area */
-  .content-area {
-    padding: 3rem 0 6rem;
-    background: var(--background);
-  }
-
-  .view-content {
+  .library__search-input:focus ~ .library__search-hint {
     display: none;
   }
 
-  .view-content.active {
-    display: block;
-  }
-
-  .loading-message {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 4rem 2rem;
-    font-style: italic;
-  }
-
-  /* Timeline View - Redesigned for minimal elegance */
-  .timeline-container {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-
-  .timeline-period {
-    margin-bottom: 4rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--divider);
-  }
-
-  .timeline-period:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  .timeline-header {
-    margin-bottom: 2rem;
-    text-align: center;
-  }
-
-  .timeline-info h3 {
-    font-size: 1.5rem;
-    font-weight: 300;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-    font-family: 'Liberation Serif', 'Nimbus Roman', 'DejaVu Serif', serif;
-    letter-spacing: -0.01em;
-  }
-
-  .timeline-info p {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-weight: 400;
-    letter-spacing: 0.02em;
-  }
-
-  .timeline-letters {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-  }
-
-  /* Collections View */
-  .collections-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 2rem;
-  }
-
-  .collection-card {
-    background: var(--surface);
-    padding: 2rem;
-    border: 1px solid var(--divider);
-    border-radius: 6px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .collection-header {
-    margin-bottom: 1.5rem;
-  }
-
-  .collection-title {
-    font-size: 1.4rem;
-    color: var(--text-primary);
-    margin-bottom: 0.75rem;
-    font-family: 'Crimson Text', Georgia, serif;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    line-height: 1.3;
-  }
-
-  .collection-meta {
+  .library__search-hint {
+    position: absolute;
+    right: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
     display: flex;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .difficulty-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .difficulty-badge.beginner {
-    background: #e8f5e8;
-    color: #2d5a2d;
-  }
-
-  .difficulty-badge.intermediate {
-    background: #fff3cd;
-    color: #856404;
-  }
-
-  .difficulty-badge.advanced {
-    background: #f8d7da;
-    color: #721c24;
-  }
-
-  .letter-count {
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
     color: var(--text-muted);
-    font-size: 0.8rem;
   }
 
-  .collection-description {
-    color: var(--text-secondary);
-    line-height: 1.65;
-    margin-bottom: 1.75rem;
-    opacity: 0.85;
-    font-size: 0.95rem;
-    font-style: italic;
+  .library__search-hint kbd {
+    font-family: var(--font-sans);
+    font-size: 0.625rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: var(--text-muted);
   }
 
-  .collection-letters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .letter-link {
-    display: inline-block;
-    padding: 0.5rem 0.9rem;
-    background: var(--terracotta-light);
-    color: var(--terracotta);
-    text-decoration: none;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-
-  .letter-link:hover {
-    background: var(--terracotta);
-    color: white;
-    transform: translateY(-1px);
-  }
-
-  /* Letter Cards */
-  .letter-card {
-    background: var(--surface);
-    padding: 1.5rem;
-    border: 1px solid var(--divider);
-    border-radius: 6px;
-    text-decoration: none;
-    display: block;
-    transition: all 0.2s ease;
-  }
-
-  .letter-card:hover {
-    border-color: var(--terracotta);
-    transform: translateY(-1px);
-  }
-
-  .card-header {
+  /* ── Toolbar ── */
+  .library__toolbar {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
+    align-items: center;
+    margin-bottom: var(--space-6);
   }
 
-  .letter-number {
-    color: var(--terracotta);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .letter-meta {
+  .library__filters {
     display: flex;
-    gap: 0.5rem;
-    font-size: 0.7rem;
-    color: var(--text-muted);
+    gap: 0;
   }
 
-  .letter-title {
+  .library__pill {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    padding: var(--space-1) var(--space-4);
+    border-bottom: 1.5px solid transparent;
+    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  }
+
+  .library__pill:first-child {
+    padding-left: 0;
+  }
+
+  .library__pill:hover {
+    color: var(--text-secondary);
+  }
+
+  .library__pill.active {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+  }
+
+  .library__random {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  }
+
+  .library__random:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .library__toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .library__count {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+
+  .library__view-toggle {
+    display: flex;
+    gap: 2px;
+  }
+
+  .library__view-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: var(--text-muted);
+    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  }
+
+  .library__view-btn:hover {
+    color: var(--text-secondary);
+  }
+
+  .library__view-btn.active {
     color: var(--text-primary);
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-    font-family: 'Crimson Text', Georgia, serif;
+    border-color: var(--border-primary);
   }
 
-  .letter-theme {
+  /* ── Letter list ── */
+  .library__list {
+    border-top: 1px solid var(--border-primary);
+  }
+
+  .library__loading {
+    text-align: center;
+    padding: var(--space-16);
     color: var(--text-muted);
-    font-size: 0.8rem;
-    margin-bottom: 0.75rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
   }
 
-  /* All Letters Grid */
-  .letters-grid {
+  /* ── Empty state ── */
+  .library__empty {
+    text-align: center;
+    padding: var(--space-20) 0;
+  }
+
+  .library__empty-text {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+  }
+
+  .library__empty-hint {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+
+  /* ── JS-generated letter rows ── */
+  :global(.library__row) {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: 3rem 1fr auto;
+    align-items: start;
+    gap: var(--space-6);
+    padding: var(--space-5) 0;
+    padding-left: var(--space-3);
+    border-bottom: 1px solid var(--border-light);
+    text-decoration: none;
+    transition: background var(--duration-fast) ease;
   }
 
-  /* Responsive */
-  @media (max-width: 1024px) {
-    .collections-grid {
-      grid-template-columns: 1fr;
-    }
+  :global(.library__row:hover) {
+    background: var(--color-accent-subtle);
+  }
+
+  :global(.library__row-number) {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    transition: color var(--duration-fast) ease;
+  }
+
+  :global(.library__row:hover .library__row-number) {
+    color: var(--color-accent);
+  }
+
+  :global(.library__row-center) {
+    min-width: 0;
+  }
+
+  :global(.library__row-title) {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 400;
+    color: var(--text-primary);
+    display: block;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    transition: color var(--duration-fast) ease;
+  }
+
+  :global(.library__row:hover .library__row-title) {
+    color: var(--color-accent);
+  }
+
+  :global(.library__row-theme) {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    display: block;
+    margin-top: 3px;
+    letter-spacing: 0.01em;
+  }
+
+  :global(.library__row-preview) {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    display: block;
+    margin-top: var(--space-1);
+    line-height: 1.5;
+  }
+
+  :global(.library__row-meta) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+  }
+
+  :global(.library__row-time) {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* ── Collections view ── */
+  .library__collections {
+    border-top: 1px solid var(--border-primary);
+  }
+
+  :global(.collection-section) {
+    padding: var(--space-8) 0 var(--space-8) var(--space-5);
+    border-bottom: 1px solid var(--border-light);
+    border-left: 2px solid var(--border-primary);
+    transition: background var(--duration-normal) ease, border-color var(--duration-normal) ease;
+  }
+
+  :global(.collection-section--highlight) {
+    background: var(--color-accent-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-4) var(--space-8);
+    margin: 0 calc(-1 * var(--space-4));
+    border-left-color: var(--color-accent);
+  }
+
+  :global(.collection-section__header) {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  :global(.collection-section__name) {
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  :global(.collection-section__count) {
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+
+  :global(.collection-section__desc) {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    margin-bottom: var(--space-5);
+    letter-spacing: 0.01em;
+  }
+
+  :global(.collection-section__letters) {
+    display: flex;
+    flex-direction: column;
   }
 
   @media (max-width: 768px) {
-    .library-header {
-      padding: 3rem 0 2rem;
+    .library {
+      padding: var(--space-8) 0 var(--space-16);
     }
 
-    .view-controls {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 1rem;
+    :global(.library__row) {
+      grid-template-columns: 3rem 1fr;
+      gap: var(--space-3);
+      padding-left: var(--space-2);
     }
 
-    .filters {
-      flex-direction: column;
+    :global(.library__row-meta) {
+      display: none;
     }
 
-    .timeline-letters {
-      grid-template-columns: 1fr;
-      gap: 1.25rem;
-    }
-
-    .timeline-header {
-      margin-bottom: 1.5rem;
-    }
-
-    .timeline-info h3 {
-      font-size: 1.25rem;
-    }
-
-    .timeline-period {
-      margin-bottom: 3rem;
-    }
-
-    .letters-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .view-toggle {
-      justify-content: center;
+    .library__view-toggle {
+      display: none;
     }
   }
 </style>
 
 <script is:inline>
-// Enhanced Library with Timeline, Collections, and Advanced Filtering
 (function() {
-  let enhancedIndex = null;
-  let currentView = 'timeline';
-  let currentFilters = {
-    search: '',
-    difficulty: '',
-    length: '',
-    theme: ''
-  };
-  let searchTokens = [];
-  let searchPhrase = '';
-  const STOP_WORDS = new Set([
-    'the','and','for','with','from','that','this','your','have','will','are','was','were','his','her','their','you','but','not','our','all'
-  ]);
+  var enhancedIndex = null;
+  var searchPhrase = '';
+  var searchTokens = [];
+  var currentFilter = '';
+  var currentView = 'list';
+
+  var STOP_WORDS_SET = {};
+  ['the','and','for','with','from','that','this','your','have','will','are','was','were','his','her','their','you','but','not','our','all'].forEach(function(w) {
+    STOP_WORDS_SET[w] = true;
+  });
 
   function tokenizeSearch(value) {
     return value
       .toLowerCase()
       .split(/[\s,]+/)
-      .map(token => token.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ''))
-      .filter(token => token.length > 0 && !STOP_WORDS.has(token));
+      .map(function(token) { return token.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ''); })
+      .filter(function(token) { return token.length > 0 && !STOP_WORDS_SET[token]; });
   }
 
   function scoreLetter(letter) {
     if (!searchPhrase) return 0;
-
-    const haystack = [
-      letter.t,
-      letter.th,
-      letter.p || '',
-      letter.timeline ? `${letter.timeline.year} ${letter.timeline.season}` : ''
+    var haystack = [
+      letter.t, letter.th, letter.p || '',
+      letter.timeline ? letter.timeline.year + ' ' + letter.timeline.season : ''
     ].join(' ').toLowerCase();
 
-    const phraseMatch = haystack.includes(searchPhrase);
-    let score = phraseMatch ? 60 : 0;
-    let matched = phraseMatch;
+    var phraseMatch = haystack.includes(searchPhrase);
+    var score = phraseMatch ? 60 : 0;
+    var matched = phraseMatch;
+    var tokensToCheck = searchTokens.length > 0 ? searchTokens : searchPhrase.split(/\s+/).filter(Boolean);
 
-    const tokensToCheck = searchTokens.length > 0 ? searchTokens : searchPhrase.split(/\s+/).filter(Boolean);
-
-    tokensToCheck.forEach(token => {
+    tokensToCheck.forEach(function(token) {
       if (!token) return;
-
       if (letter.n && (letter.n.toString() === token || letter.n.toString() === searchPhrase)) {
-        score += 100;
-        matched = true;
-        return;
+        score += 100; matched = true; return;
       }
-
-      if (haystack.includes(token)) {
-        score += 25;
-        matched = true;
-      }
-
-      if (letter.k && letter.k.some(keyword => keyword.includes(token))) {
-        score += 20;
-        matched = true;
+      if (haystack.includes(token)) { score += 25; matched = true; }
+      if (letter.k && letter.k.some(function(keyword) { return keyword.includes(token); })) {
+        score += 20; matched = true;
       }
     });
-
     return matched ? score : -1;
   }
-  
-  // Load enhanced index
-  async function loadEnhancedIndex() {
-    if (enhancedIndex) return enhancedIndex;
-    
-    try {
-      const response = await fetch('/api/enhanced-index.json');
-      enhancedIndex = await response.json();
-      console.log('[Library] Loaded enhanced index');
-      return enhancedIndex;
-    } catch (error) {
-      console.error('[Library] Failed to load enhanced index:', error);
-      return null;
-    }
-  }
-  
-  // Convert title to proper case
-  function toTitleCase(str) {
-    return str.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+
+  function loadEnhancedIndex() {
+    if (enhancedIndex) return Promise.resolve(enhancedIndex);
+    return fetch('/api/enhanced-index.json')
+      .then(function(r) { return r.json(); })
+      .then(function(data) { enhancedIndex = data; return data; })
+      .catch(function(e) { console.error('[Library] Failed to load index:', e); return null; });
   }
 
-  // Create letter card HTML
-  function createLetterCard(letter, compact = false) {
-    const cleanTitle = toTitleCase(letter.t.replace(/\[\d+\]/g, '').trim());
-    const slug = cleanTitle.toLowerCase()
+  function toTitleCase(str) {
+    return str.toLowerCase().replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+  }
+
+  function createSlug(title) {
+    return title.toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
-    
-    const url = `/letters/${letter.n}-${slug}`;
-    const difficultyClass = letter.meta?.difficulty || 'beginner';
-    const lengthText = letter.meta?.length === 'short' ? '~5 min' : 
-                     letter.meta?.length === 'medium' ? '~10 min' : '~15+ min';
-    
-    if (compact) {
-      return `
-        <a href="${url}" class="letter-link" title="${cleanTitle}">
-          Letter ${letter.n}
-        </a>
-      `;
-    }
-    
-    return `
-      <a href="${url}" class="letter-card" data-number="${letter.n}" data-theme="${letter.th}" data-difficulty="${difficultyClass}" data-length="${letter.meta?.length}">
-        <div class="card-header">
-          <span class="letter-number">Letter ${letter.n}</span>
-          <div class="letter-meta">
-            <span class="${difficultyClass}">${difficultyClass}</span>
-            <span>${lengthText}</span>
-          </div>
-        </div>
-        <h3 class="letter-title">${cleanTitle}</h3>
-        <p class="letter-theme">${letter.th}</p>
-      </a>
-    `;
   }
-  
-  // Filter letters
+
+  function readingTime(wc) {
+    return Math.ceil(wc / 220) + ' min';
+  }
+
+  function createRowElement(letter) {
+    var cleanTitle = toTitleCase(letter.t.replace(/\[\d+\]/g, '').trim());
+    var slug = createSlug(cleanTitle);
+    var url = '/letters/' + letter.n + '-' + slug;
+    var wc = letter.meta ? letter.meta.wordCount : 0;
+
+    var a = document.createElement('a');
+    a.href = url;
+    a.className = 'library__row';
+
+    var numSpan = document.createElement('span');
+    numSpan.className = 'library__row-number';
+    numSpan.textContent = String(letter.n);
+
+    var centerDiv = document.createElement('div');
+    centerDiv.className = 'library__row-center';
+
+    var titleSpan = document.createElement('span');
+    titleSpan.className = 'library__row-title';
+    titleSpan.textContent = cleanTitle;
+
+    var themeSpan = document.createElement('span');
+    themeSpan.className = 'library__row-theme';
+    themeSpan.textContent = letter.th;
+
+    centerDiv.appendChild(titleSpan);
+    centerDiv.appendChild(themeSpan);
+
+    if (letter.p) {
+      var rawPreview = letter.p.replace(/^\d+\.\s+/, '').replace(/\[\d+\]/g, '').trim();
+      var preview = rawPreview.length > 120 ? rawPreview.substring(0, 120) + '…' : rawPreview;
+      var previewSpan = document.createElement('span');
+      previewSpan.className = 'library__row-preview';
+      previewSpan.textContent = preview;
+      centerDiv.appendChild(previewSpan);
+    }
+
+    var metaDiv = document.createElement('div');
+    metaDiv.className = 'library__row-meta';
+
+    if (wc) {
+      var timeSpan = document.createElement('span');
+      timeSpan.className = 'library__row-time';
+      timeSpan.textContent = readingTime(wc);
+      metaDiv.appendChild(timeSpan);
+    }
+
+    a.appendChild(numSpan);
+    a.appendChild(centerDiv);
+    a.appendChild(metaDiv);
+    return a;
+  }
+
   function filterLetters(letters) {
-    return letters.filter(letter => {
-      // Search filter
+    return letters.filter(function(letter) {
       if (searchPhrase) {
-        const score = scoreLetter(letter);
-        if (score <= 0) {
-          return false;
-        }
+        var score = scoreLetter(letter);
+        if (score <= 0) return false;
         letter._score = score;
       } else {
         letter._score = 0;
       }
-
-      // Difficulty filter
-      if (currentFilters.difficulty && letter.meta?.difficulty !== currentFilters.difficulty) {
-        return false;
-      }
-      
-      // Length filter
-      if (currentFilters.length && letter.meta?.length !== currentFilters.length) {
-        return false;
-      }
-      
-      // Theme filter
-      if (currentFilters.theme && letter.th !== currentFilters.theme) {
-        return false;
-      }
-      
+      if (currentFilter && letter.meta && letter.meta.length !== currentFilter) return false;
+      if (currentFilter && !letter.meta) return false;
       return true;
     });
   }
-  
-  // Render timeline view
-  function renderTimelineView(index) {
-    const container = document.getElementById('timelineContainer');
-    if (!container) return;
-    
-    const filteredLetters = filterLetters(index.letters);
-    const lettersByPeriod = {};
-    
-    // Group filtered letters by timeline period
-    filteredLetters.forEach(letter => {
-      if (!letter.timeline) return;
-      const key = `${letter.timeline.year} - ${letter.timeline.season}`;
-      if (!lettersByPeriod[key]) {
-        lettersByPeriod[key] = {
-          year: letter.timeline.year,
-          season: letter.timeline.season,
-          letters: []
-        };
-      }
-      lettersByPeriod[key].letters.push(letter);
-    });
-    
-    let html = '';
-    Object.entries(lettersByPeriod).forEach(([key, period]) => {
-      html += `
-        <div class="timeline-period">
-          <div class="timeline-header">
-            <div class="timeline-info">
-              <h3>${period.year}</h3>
-              <p>${period.season} • ${period.letters.length} letters</p>
-            </div>
-          </div>
-          <div class="timeline-letters">
-            ${period.letters.map(letter => createLetterCard(letter)).join('')}
-          </div>
-        </div>
-      `;
-    });
-    
-    container.innerHTML = html || '<div class="loading-message">No letters match your filters</div>';
-    
-    updateResultCount(filteredLetters.length);
-  }
-  
-  // Render collections view
-  function renderCollectionsView(index) {
-    const container = document.getElementById('collectionsGrid');
-    if (!container) return;
-    
-    let html = '';
-    Object.entries(index.collections).forEach(([name, collection]) => {
-      const collectionLetters = index.letters.filter(letter => 
-        collection.letters.includes(letter.n)
-      );
-      
-      const filteredCollectionLetters = filterLetters(collectionLetters);
-      if (searchPhrase) {
-        filteredCollectionLetters.sort((a, b) => (b._score || 0) - (a._score || 0));
-      }
-      
-      if (filteredCollectionLetters.length === 0 && currentFilters.search) {
-        return; // Skip empty collections when searching
-      }
-      
-      html += `
-        <div class="collection-card">
-          <div class="collection-header">
-            <h3 class="collection-title">${name}</h3>
-            <div class="collection-meta">
-              <span class="difficulty-badge ${collection.difficulty}">${collection.difficulty}</span>
-              <span class="letter-count">${filteredCollectionLetters.length} letters</span>
-            </div>
-            <p class="collection-description">${collection.description}</p>
-          </div>
-          <div class="collection-letters">
-            ${filteredCollectionLetters.map(letter => createLetterCard(letter, true)).join('')}
-          </div>
-        </div>
-      `;
-    });
-    
-    container.innerHTML = html || '<div class="loading-message">No collections match your filters</div>';
-    
-    const totalLetters = filterLetters(index.letters).length;
-    updateResultCount(totalLetters);
-  }
-  
-  // Render all letters view
-  function renderAllView(index) {
-    const container = document.getElementById('lettersGrid');
-    if (!container) return;
-    
-    const filteredLetters = filterLetters(index.letters);
-    if (searchPhrase) {
-      filteredLetters.sort((a, b) => (b._score || 0) - (a._score || 0));
-    }
-    
-    const html = filteredLetters.map(letter => createLetterCard(letter)).join('');
-    container.innerHTML = html || '<div class="loading-message">No letters match your filters</div>';
-    
-    updateResultCount(filteredLetters.length);
-  }
-  
-  // Update result count
-  function updateResultCount(count) {
-    const resultDiv = document.getElementById('resultCount');
-    if (resultDiv) {
-      if (count > 0) {
-        resultDiv.textContent = `Showing ${count} letter${count !== 1 ? 's' : ''}`;
-      } else {
-        resultDiv.textContent = 'No matches found';
-      }
-    }
-  }
-  
-  // Render current view
-  async function renderCurrentView() {
-    const index = await loadEnhancedIndex();
-    if (!index) return;
-    
-    switch (currentView) {
-      case 'timeline':
-        renderTimelineView(index);
-        break;
-      case 'collections':
-        renderCollectionsView(index);
-        break;
-      case 'all':
-        renderAllView(index);
-        break;
-    }
-  }
-  
-  // Switch view
-  function switchView(newView) {
-    currentView = newView;
-    
-    // Update view buttons
-    document.querySelectorAll('.view-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.view === newView);
-    });
-    
-    // Update view content
-    document.querySelectorAll('.view-content').forEach(content => {
-      content.classList.toggle('active', content.id === `${newView}View`);
-    });
-    
-    renderCurrentView();
-  }
-  
-  // Update filters
-  function updateFilters() {
-    currentFilters.search = document.getElementById('searchInput')?.value.trim() || '';
-    currentFilters.difficulty = document.getElementById('difficultyFilter')?.value || '';
-    currentFilters.length = document.getElementById('lengthFilter')?.value || '';
-    currentFilters.theme = document.getElementById('themeFilter')?.value || '';
 
-    searchPhrase = currentFilters.search.trim().toLowerCase();
-    searchTokens = tokenizeSearch(currentFilters.search);
-    
-    renderCurrentView();
+  function renderList() {
+    var index = enhancedIndex;
+    if (!index) return;
+
+    var container = document.getElementById('lettersList');
+    var countDiv = document.getElementById('resultCount');
+    var emptyState = document.getElementById('emptyState');
+    if (!container) return;
+
+    var filtered = filterLetters(index.letters.slice());
+    if (searchPhrase) {
+      filtered.sort(function(a, b) { return (b._score || 0) - (a._score || 0); });
+    }
+
+    while (container.firstChild) container.removeChild(container.firstChild);
+
+    if (filtered.length === 0) {
+      container.style.display = 'none';
+      if (emptyState) emptyState.style.display = 'block';
+    } else {
+      container.style.display = 'block';
+      if (emptyState) emptyState.style.display = 'none';
+      var fragment = document.createDocumentFragment();
+      filtered.forEach(function(l) { fragment.appendChild(createRowElement(l)); });
+      container.appendChild(fragment);
+    }
+
+    if (countDiv) {
+      countDiv.textContent = (searchPhrase || currentFilter)
+        ? filtered.length + ' letter' + (filtered.length !== 1 ? 's' : '')
+        : '';
+    }
   }
-  
-  // Debounce function
+
+  function renderCollections() {
+    var index = enhancedIndex;
+    if (!index) return;
+
+    var container = document.getElementById('collectionsView');
+    if (!container) return;
+    while (container.firstChild) container.removeChild(container.firstChild);
+
+    var fragment = document.createDocumentFragment();
+    Object.keys(index.collections).forEach(function(name) {
+      var collection = index.collections[name];
+      var section = document.createElement('div');
+      section.className = 'collection-section';
+      section.setAttribute('data-collection', name);
+
+      var header = document.createElement('div');
+      header.className = 'collection-section__header';
+
+      var nameEl = document.createElement('h3');
+      nameEl.className = 'collection-section__name';
+      nameEl.textContent = name;
+
+      var countBadge = document.createElement('span');
+      countBadge.className = 'collection-section__count';
+      countBadge.textContent = collection.letters.length + ' letters';
+
+      header.appendChild(nameEl);
+      header.appendChild(countBadge);
+
+      var desc = document.createElement('p');
+      desc.className = 'collection-section__desc';
+      desc.textContent = collection.description;
+
+      var lettersList = document.createElement('div');
+      lettersList.className = 'collection-section__letters';
+
+      collection.letters.forEach(function(letterNum) {
+        var letter = index.letters.find(function(l) { return l.n === letterNum; });
+        if (letter) lettersList.appendChild(createRowElement(letter));
+      });
+
+      section.appendChild(header);
+      section.appendChild(desc);
+      section.appendChild(lettersList);
+      fragment.appendChild(section);
+    });
+
+    container.appendChild(fragment);
+  }
+
+  function render() {
+    if (!enhancedIndex) return;
+    var listView = document.getElementById('lettersList');
+    var collectionsViewEl = document.getElementById('collectionsView');
+
+    if (currentView === 'list') {
+      if (listView) listView.style.display = 'block';
+      if (collectionsViewEl) collectionsViewEl.style.display = 'none';
+      renderList();
+    } else {
+      if (listView) listView.style.display = 'none';
+      if (collectionsViewEl) collectionsViewEl.style.display = 'block';
+      var emptyState = document.getElementById('emptyState');
+      if (emptyState) emptyState.style.display = 'none';
+      renderCollections();
+    }
+  }
+
+  function setView(view) {
+    currentView = view;
+    document.querySelectorAll('.library__view-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-view') === view);
+    });
+    render();
+  }
+
+  function handleURLParams() {
+    var params = new URLSearchParams(window.location.search);
+    var collection = params.get('collection');
+    var period = params.get('period');
+
+    if (collection) {
+      setView('collections');
+      setTimeout(function() {
+        var sections = document.querySelectorAll('.collection-section');
+        sections.forEach(function(section) {
+          if (section.getAttribute('data-collection') === collection) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            section.classList.add('collection-section--highlight');
+          }
+        });
+      }, 100);
+    }
+
+    if (period) {
+      loadEnhancedIndex().then(function(index) {
+        if (!index) return;
+        var timelinePeriod = index.timeline.find(function(t) { return t.season === period; });
+        if (!timelinePeriod) return;
+        var letterNums = {};
+        timelinePeriod.letters.forEach(function(n) { letterNums[n] = true; });
+
+        var container = document.getElementById('lettersList');
+        var countDiv = document.getElementById('resultCount');
+        if (!container) return;
+        while (container.firstChild) container.removeChild(container.firstChild);
+
+        var fragment = document.createDocumentFragment();
+        var count = 0;
+        index.letters.forEach(function(l) {
+          if (letterNums[l.n]) { fragment.appendChild(createRowElement(l)); count++; }
+        });
+        container.appendChild(fragment);
+
+        if (countDiv) {
+          countDiv.textContent = timelinePeriod.year + ' · ' + timelinePeriod.season + ' — ' + count + ' letters';
+        }
+      });
+    }
+  }
+
   function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
+    var timeout;
+    return function() {
+      var args = arguments; var context = this;
       clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
+      timeout = setTimeout(function() { func.apply(context, args); }, wait);
     };
   }
-  
-  // Initialize
+
   function init() {
-    // View toggle buttons
-    document.querySelectorAll('.view-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        switchView(btn.dataset.view);
-      });
-    });
-    
-    // Search input
-    const searchInput = document.getElementById('searchInput');
+    var searchInput = document.getElementById('searchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', debounce(updateFilters, 300));
+      searchInput.addEventListener('input', debounce(function() {
+        searchPhrase = searchInput.value.trim().toLowerCase();
+        searchTokens = tokenizeSearch(searchInput.value);
+        if (currentView === 'collections' && searchPhrase) setView('list');
+        render();
+      }, 280));
     }
-    
-    // Filter selects
-    ['difficultyFilter', 'lengthFilter', 'themeFilter'].forEach(id => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.addEventListener('change', updateFilters);
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === '/' && document.activeElement !== searchInput) {
+        e.preventDefault();
+        if (searchInput) searchInput.focus();
+      }
+      if (e.key === 'Escape' && document.activeElement === searchInput) {
+        searchInput.blur();
       }
     });
-    
-    // Load initial view
-    renderCurrentView();
+
+    document.querySelectorAll('.library__pill').forEach(function(pill) {
+      pill.addEventListener('click', function() {
+        document.querySelectorAll('.library__pill').forEach(function(p) { p.classList.remove('active'); });
+        this.classList.add('active');
+        currentFilter = this.dataset.filter;
+        render();
+      });
+    });
+
+    document.querySelectorAll('.library__view-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        setView(this.getAttribute('data-view'));
+      });
+    });
+
+    var randomBtn = document.getElementById('randomLetterBtn');
+    if (randomBtn) {
+      randomBtn.addEventListener('click', function() {
+        loadEnhancedIndex().then(function(index) {
+          if (!index || !index.letters.length) return;
+          var letter = index.letters[Math.floor(Math.random() * index.letters.length)];
+          var cleanTitle = toTitleCase(letter.t.replace(/\[\d+\]/g, '').trim());
+          window.location.href = '/letters/' + letter.n + '-' + createSlug(cleanTitle);
+        });
+      });
+    }
+
+    loadEnhancedIndex().then(function() {
+      render();
+      handleURLParams();
+    });
   }
-  
-  // Initialize when DOM is ready
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

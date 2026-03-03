@@ -33,8 +33,8 @@ export const onRequest = defineMiddleware((context, next) => {
       "default-src 'self'",
       `script-src 'self' 'unsafe-inline' 'nonce-${nonce}' 'sha256-hNa9rKEnrYPp05vHw8SL7olHPePrhcjQPqsIl8WAMps=' 'sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==' 'sha256-zCyF7/LBLIR3ixUl5+zk1LS6NeXpWplM7FGuTuH8RKw=' 'sha256-ilR9cy+njuY6tAHwt4BGcjaErkeuD87svCjby0Zv+TM=' 'sha256-BlqvHhJZQH1ERDIcdDqmWSfwWpmoN865BFzfzxLHs3M=' 'sha256-jW6/g4aKAC/JHi3ESCAPCV0KECH0rzEP4S9mkwkOYXM=' 'sha256-cVKsmYm0p7QvJ3e0YrCvend1rcw5Quit7E98+mfku4w=' 'strict-dynamic' static.cloudflareinsights.com`, // Allow all self scripts + specific hashes + cloudflare
       `script-src-elem 'self' 'unsafe-inline' static.cloudflareinsights.com`, // Allow external script elements
-      "style-src 'self' 'unsafe-inline' fonts.googleapis.com", // Still need unsafe-inline for Astro styles
-      "font-src 'self' fonts.gstatic.com data:", // Allow Google Fonts and data URIs
+      "style-src 'self' 'unsafe-inline' fonts.googleapis.com", // Astro styles + Google Fonts CSS
+      "font-src 'self' fonts.gstatic.com data:", // Google Fonts (Source Serif 4 + Inter) and data URIs
       "img-src 'self' data:", // Allow self and data URLs
       "connect-src 'self' cloudflareinsights.com", // Allow connections to self and Cloudflare Insights
       "frame-ancestors 'none'", // Prevent clickjacking
