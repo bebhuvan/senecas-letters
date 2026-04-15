@@ -12,12 +12,12 @@
     "deploy": "npm run build && npx wrangler deploy"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "astro": "^5.13.7",
-    "typescript": "^5.9.2"
+    "@astrojs/check": "^0.9.8",
+    "astro": "^5.18.1",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@astrojs/cloudflare": "^12.6.8",
-    "wrangler": "^4.35.0"
+    "@astrojs/cloudflare": "^12.6.13",
+    "wrangler": "^4.82.2"
   }
 }

@@ -47,11 +47,20 @@ const currentSlug = createSlug(cleanedTitle);
 const letterFootnotes: Record<string, string> = (footnotesData as any)[String(letter.number)] || {};
 const hasFootnotes = Object.keys(letterFootnotes).length > 0;
 
-const letterDescription = letter.content
-  .split('\n\n')[0]
-  .replace(/^\d+\.\s+/, '')
-  .replace(/\[\d+\]/g, '')
-  .substring(0, 160) + '...';
+// Unique per-letter meta description: theme + a real sentence from the body
+const letterTheme = enhanced?.th?.trim() || '';
+const firstMeaningfulParagraph = (() => {
+  const paragraphs = letter.content
+    .split('\n\n')
+    .map(p => p.replace(/^\d+\.\s+/, '').replace(/\[\d+\]/g, '').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim())
+    .filter(p => p.length > 40 && !/^greetings/i.test(p));
+  return paragraphs[0] || paragraphs[0] || '';
+})();
+const descCore = firstMeaningfulParagraph.substring(0, 150).trim();
+const descTail = firstMeaningfulParagraph.length > 150 ? '…' : '';
+const letterDescription = letterTheme
+  ? `${letterTheme}. ${descCore}${descTail}`.substring(0, 300)
+  : `${descCore}${descTail}`;
 
 function formatContent(content: string): string {
   let lines = content.split('\n');
@@ -69,23 +78,29 @@ function formatContent(content: string): string {
 
   const cleanContent = cleanedLines.join('\n');
   let sections = cleanContent.split('\n\n');
-  let allParagraphs: string[] = [];
+  let allParagraphs: Array<{ num: string | null; text: string }> = [];
   let footnoteCounter = 0;
 
   sections.forEach(section => {
     section = section.trim();
     if (!section) return;
 
-    let parts = section.split(/\s+(\d+)\.\s+/);
+    const parts = section.split(/\s+(\d+)\.\s+/);
+    let pendingNum: string | null = null;
+
+    // Check if the section itself starts with "N. "
+    const leadMatch = parts[0].match(/^(\d+)\.\s+(.*)$/s);
+    if (leadMatch) {
+      pendingNum = leadMatch[1];
+      parts[0] = leadMatch[2];
+    }
 
     for (let i = 0; i < parts.length; i++) {
       let part = parts[i].trim();
       if (!part) continue;
-      if (/^\d+$/.test(part)) continue;
+      if (/^\d+$/.test(part)) { pendingNum = part; continue; }
 
-      let cleaned = part.replace(/^\d+\.\s+/, '');
-
-      cleaned = cleaned.replace(/\[(\d+)\]/g, (_match, num) => {
+      let cleaned = part.replace(/\[(\d+)\]/g, (_match, _num) => {
         footnoteCounter++;
         const fnNum = footnoteCounter;
         const fnText = letterFootnotes[String(fnNum)] || '';
@@ -97,13 +112,26 @@ function formatContent(content: string): string {
       });
 
       cleaned = cleaned.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-      if (cleaned) allParagraphs.push(cleaned);
+      if (cleaned) {
+        allParagraphs.push({ num: pendingNum, text: cleaned });
+        pendingNum = null;
+      }
     }
   });
 
-  return allParagraphs
-    .filter(p => p.length > 0)
-    .map(p => `<p>${p}</p>`)
+  const rendered = allParagraphs.filter(p => p.text.length > 0);
+  let dropCapAssigned = false;
+  return rendered
+    .map((p, i) => {
+      const numAttr = p.num ? ` data-num="${p.num}"` : '';
+      const isSalutation = i === 0 && p.text.length < 140 && /greetings|lucilius|seneca/i.test(p.text);
+      if (isSalutation) return `<p class="salutation">${p.text}</p>`;
+      if (!dropCapAssigned) {
+        dropCapAssigned = true;
+        return `<p class="dropcap"${numAttr}>${p.text}</p>`;
+      }
+      return `<p${numAttr}>${p.text}</p>`;
+    })
     .join('');
 }
 
@@ -128,11 +156,14 @@ function buildEndnotes(): string {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Letter ${letter.number}: ${displayTitle}`,
-    "author": { "@type": "Person", "name": "Lucius Annaeus Seneca" },
+    "description": letterDescription,
+    "author": { "@type": "Person", "name": "Lucius Annaeus Seneca", "sameAs": "https://en.wikipedia.org/wiki/Seneca_the_Younger" },
     "publisher": { "@type": "Organization", "name": "Seneca's Letters", "url": "https://seneca.ink" },
     "mainEntityOfPage": `https://seneca.ink/letters/${letter.number}-${currentSlug}`,
     "wordCount": wordCount,
-    "articleSection": "Philosophy",
+    "timeRequired": `PT${readTime}M`,
+    "articleSection": letterTheme || "Philosophy",
+    "keywords": (enhanced?.k || []).join(", "),
     "inLanguage": "en",
     "breadcrumb": {
       "@type": "BreadcrumbList",
@@ -144,9 +175,6 @@ function buildEndnotes(): string {
   }}
 >
   <Header />
-
-  <!-- Reading progress -->
-  <div class="progress-bar" id="progressBar"></div>
 
   <main class="reader">
     <div class="container">
@@ -187,6 +215,15 @@ function buildEndnotes(): string {
         <article class="reader__body" id="letterBody">
           <Fragment set:html={formatContent(letter.content)} />
         </article>
+      </div>
+
+      <!-- Closing flourish -->
+      <div class="reader__end" aria-hidden="true">
+        <div class="reader__ornament">✦</div>
+        <div class="reader__signature">
+          Vale.
+          <span class="reader__signature-meta">Seneca · Letter {letter.number} of 124</span>
+        </div>
       </div>
 
       <!-- Endnotes (mobile/tablet) -->
@@ -263,21 +300,28 @@ function buildEndnotes(): string {
 </Layout>
 
 <style>
-  /* Reading progress */
-  .progress-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 1.5px;
-    width: 0%;
-    background: var(--color-accent);
-    z-index: 200;
-    transition: width 60ms linear;
-  }
-
   .reader {
     padding-top: var(--space-4);
     padding-bottom: var(--space-20);
+    position: relative;
+  }
+
+  /* Warm paper gradient — top-lit, very subtle */
+  .reader::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 900px 600px at 50% 0%, rgba(196,120,42,0.035), transparent 60%),
+      linear-gradient(180deg, transparent 0%, transparent 85%, rgba(196,120,42,0.02) 100%);
+    z-index: -1;
+  }
+
+  :global([data-theme="dark"]) .reader::before {
+    background:
+      radial-gradient(ellipse 900px 600px at 50% 0%, rgba(212,146,74,0.04), transparent 60%),
+      linear-gradient(180deg, transparent 0%, transparent 85%, rgba(212,146,74,0.03) 100%);
   }
 
   /* Breadcrumb */
@@ -290,6 +334,15 @@ function buildEndnotes(): string {
     align-items: center;
     gap: var(--space-2);
     letter-spacing: 0.03em;
+    transition: opacity 0.4s ease;
+  }
+
+  :global(body.is-reading) .reader__breadcrumb {
+    opacity: 0.25;
+  }
+
+  :global(body.is-reading) .reader__breadcrumb:hover {
+    opacity: 1;
   }
 
   .reader__breadcrumb a {
@@ -301,32 +354,38 @@ function buildEndnotes(): string {
     color: var(--color-accent);
   }
 
-  /* Header */
+  /* Header — book-chapter opener */
   .reader__header {
     max-width: var(--max-width-prose);
-    margin: 0 auto var(--space-16);
+    margin: 0 auto var(--space-20);
     text-align: center;
-    padding-top: var(--space-8);
+    padding-top: var(--space-10);
+    position: relative;
   }
 
   .reader__header::after {
-    content: '';
+    content: '✦';
     display: block;
-    width: 48px;
-    height: 2px;
-    background: var(--color-accent);
-    margin: var(--space-6) auto 0;
+    margin: var(--space-8) auto 0;
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    line-height: 1;
+    opacity: 0.6;
+    letter-spacing: 0.4em;
   }
 
   .reader__letter-num {
     display: block;
     font-family: var(--font-display);
-    font-size: clamp(4rem, 10vw, 7rem);
+    font-style: italic;
+    font-size: clamp(5rem, 12vw, 9rem);
     font-weight: 300;
-    color: var(--text-muted);
-    line-height: 1;
-    letter-spacing: -0.03em;
-    margin-bottom: var(--space-5);
+    color: var(--color-accent);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    margin-bottom: var(--space-6);
+    opacity: 0.85;
   }
 
   .reader__meta {
@@ -334,16 +393,17 @@ function buildEndnotes(): string {
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-4);
     flex-wrap: wrap;
   }
 
   .reader__meta-item {
     font-family: var(--font-sans);
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
     color: var(--text-muted);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
+    font-weight: 500;
   }
 
   .reader__sep {
@@ -353,12 +413,14 @@ function buildEndnotes(): string {
 
   .reader__title {
     font-family: var(--font-display);
-    font-size: clamp(2rem, 4.5vw, 3.25rem);
+    font-style: italic;
+    font-size: clamp(2.125rem, 5vw, 3.75rem);
     font-weight: 400;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
     color: var(--text-primary);
     margin-bottom: var(--space-4);
+    text-wrap: balance;
   }
 
   .reader__collections {
@@ -387,43 +449,175 @@ function buildEndnotes(): string {
     border-color: var(--color-accent);
   }
 
-  /* Reader grid — sidenote layout */
+  /* Reader grid — single column by default, sidenote layout ≥1200px */
   .reader__grid {
     display: grid;
-    grid-template-columns: 1fr min(var(--max-width-prose), 100%) 1fr;
-    column-gap: var(--space-8);
+    grid-template-columns: minmax(0, var(--max-width-prose));
+    justify-content: center;
   }
 
   @media (min-width: 1200px) {
     .reader__grid {
-      grid-template-columns: 1fr min(var(--max-width-prose), 100%) var(--sidenote-width);
+      grid-template-columns: 1fr minmax(0, var(--max-width-prose)) var(--sidenote-width);
+      column-gap: var(--space-8);
+      justify-content: initial;
     }
   }
 
   .reader__body {
-    grid-column: 2;
+    grid-column: 1;
+    min-width: 0;
     font-family: var(--font-serif);
     font-size: 20px;
-    line-height: 1.95;
-    letter-spacing: 0.005em;
+    line-height: 1.78;
+    letter-spacing: 0.002em;
     color: var(--text-primary);
     hyphens: auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hanging-punctuation: first last;
+    text-wrap: pretty;
+    font-variant-numeric: oldstyle-nums proportional-nums;
+    font-feature-settings: "kern" 1, "liga" 1, "onum" 1, "pnum" 1, "calt" 1;
   }
 
-  /* Drop cap */
-  .reader__body :global(p:first-child::first-letter) {
+  @media (min-width: 1200px) {
+    .reader__body {
+      grid-column: 2;
+    }
+  }
+
+  /* Salutation — the opening greeting, set apart */
+  .reader__body :global(.salutation) {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.125em;
+    font-weight: 400;
+    color: var(--text-secondary);
+    letter-spacing: 0.005em;
+    margin-bottom: 2.2em;
+    line-height: 1.45;
+  }
+
+  /* Drop cap — applied to the first substantive paragraph */
+  .reader__body :global(.dropcap::first-letter) {
     float: left;
     font-family: var(--font-display);
-    font-size: 4.25em;
-    line-height: 0.75;
+    font-style: italic;
+    font-size: 4.8em;
+    line-height: 0.82;
     font-weight: 400;
     color: var(--color-accent);
-    padding-right: 0.06em;
-    margin-top: 0.07em;
+    padding-right: 0.08em;
+    margin-top: 0.04em;
+    margin-right: 0.02em;
+  }
+
+  /* Small-caps lead-in on the first real paragraph — classic book opener */
+  .reader__body :global(.dropcap::first-line) {
+    font-variant: small-caps;
+    letter-spacing: 0.04em;
+    font-size: 0.95em;
   }
 
   .reader__body :global(p) {
-    margin-bottom: 1.6em;
+    margin-bottom: 1.45em;
+    position: relative;
+  }
+
+  .reader__body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* Paragraph numbers in margin — Tufte-style marginalia (desktop only) */
+  @media (min-width: 900px) {
+    .reader__body :global(p[data-num])::before {
+      content: attr(data-num);
+      position: absolute;
+      right: calc(100% + 20px);
+      top: 0.42em;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 300;
+      font-size: 0.78em;
+      color: var(--text-muted);
+      opacity: 0.55;
+      letter-spacing: 0;
+      line-height: 1;
+      user-select: none;
+      transition: opacity var(--duration-fast) ease, color var(--duration-fast) ease;
+    }
+
+    .reader__body :global(p[data-num]:hover)::before {
+      opacity: 1;
+      color: var(--color-accent);
+    }
+
+    .reader__body :global(.dropcap[data-num])::before {
+      top: 0.62em;
+    }
+  }
+
+  /* Footnote ref — tighter, more refined */
+  .reader__body :global(.fnref a) {
+    padding: 0 1px;
+    border-bottom: 1px dotted var(--color-accent);
+    border-radius: 1px;
+  }
+  .reader__body :global(.fnref a:hover) {
+    text-decoration: none;
+    background: var(--color-accent-light);
+  }
+
+  /* Closing flourish + signature */
+  .reader__end {
+    max-width: var(--max-width-prose);
+    margin: var(--space-12) auto 0;
+    text-align: center;
+    padding: var(--space-8) 0 var(--space-4);
+  }
+
+  .reader__ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-5);
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    line-height: 1;
+    letter-spacing: 0.3em;
+    opacity: 0.6;
+  }
+
+  .reader__ornament::before,
+  .reader__ornament::after {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.5;
+  }
+
+  .reader__signature {
+    margin-top: var(--space-5);
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    letter-spacing: 0.01em;
+  }
+
+  .reader__signature-meta {
+    display: block;
+    margin-top: var(--space-2);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-style: normal;
+    color: var(--text-muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
   /* Footnote references */
@@ -439,11 +633,6 @@ function buildEndnotes(): string {
   .reader__body :global(.fnref a) {
     color: var(--color-accent);
     text-decoration: none;
-    padding: 0 1px;
-  }
-
-  .reader__body :global(.fnref a:hover) {
-    text-decoration: underline;
   }
 
   /* Sidenotes — desktop only */
@@ -527,29 +716,32 @@ function buildEndnotes(): string {
     margin-left: var(--space-1);
   }
 
-  /* Navigation */
+  /* Navigation — teaser cards */
   .reader__nav {
     max-width: var(--max-width-prose);
     margin: var(--space-20) auto 0;
-    padding-top: var(--space-8);
-    border-top: 1px solid var(--border-primary);
+    padding-top: var(--space-10);
+    border-top: 1px solid var(--border-light);
   }
 
   .reader__nav-inner {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
-    gap: var(--space-4);
-    align-items: center;
+    gap: var(--space-6);
+    align-items: stretch;
   }
 
   .reader__nav-item {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: var(--space-3);
     text-decoration: none;
-    padding: var(--space-3);
-    border-radius: var(--radius-sm);
-    transition: background var(--duration-fast) ease;
+    padding: var(--space-6) var(--space-5);
+    border: 1px solid var(--border-light);
+    border-radius: 2px;
+    transition: border-color var(--duration-normal) ease,
+                background var(--duration-normal) ease,
+                transform var(--duration-normal) ease;
   }
 
   .reader__nav-item--next {
@@ -558,48 +750,58 @@ function buildEndnotes(): string {
 
   .reader__nav-item:hover {
     background: var(--color-accent-subtle);
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reader__nav-item { transition: background var(--duration-normal) ease, border-color var(--duration-normal) ease; }
+    .reader__nav-item:hover { transform: none; }
   }
 
   .reader__nav-dir {
     font-family: var(--font-sans);
     font-size: var(--text-xs);
-    color: var(--text-muted);
+    color: var(--color-accent);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    transition: color var(--duration-fast) ease;
+    letter-spacing: 0.16em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .reader__nav-item--next .reader__nav-dir {
+    justify-content: flex-end;
   }
 
   .reader__nav-title {
     font-family: var(--font-display);
-    font-size: var(--text-base);
+    font-size: 1.375rem;
     font-style: italic;
+    font-weight: 400;
     color: var(--text-primary);
-    line-height: 1.3;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
     transition: color var(--duration-fast) ease;
   }
 
-  .reader__nav-item:hover .reader__nav-dir,
-  .reader__nav-item:hover .reader__nav-title {
-    color: var(--text-primary);
-  }
-
   .reader__nav-center {
+    align-self: center;
     font-family: var(--font-sans);
     font-size: var(--text-xs);
     color: var(--text-muted);
     text-decoration: none;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: var(--space-2) var(--space-4);
-    border: 1px solid var(--border-primary);
-    border-radius: 2px;
+    letter-spacing: 0.16em;
+    font-weight: 600;
+    padding: var(--space-3) var(--space-4);
     white-space: nowrap;
-    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+    transition: color var(--duration-fast) ease;
   }
 
   .reader__nav-center:hover {
-    color: var(--text-primary);
-    border-color: var(--text-secondary);
+    color: var(--color-accent);
   }
 
   /* Reading controls */
@@ -608,6 +810,13 @@ function buildEndnotes(): string {
     bottom: var(--space-8);
     right: var(--space-8);
     z-index: 50;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .controls.controls--hidden {
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
   }
 
   .controls__toggle {
@@ -775,6 +984,18 @@ function buildEndnotes(): string {
       bottom: var(--space-4);
       right: var(--space-4);
     }
+
+    .controls__toggle {
+      width: 36px;
+      height: 36px;
+      background: rgba(248, 247, 244, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    :global([data-theme="dark"]) .controls__toggle {
+      background: rgba(16, 15, 13, 0.85);
+    }
   }
 </style>
 
@@ -787,8 +1008,6 @@ function buildEndnotes(): string {
     var decreaseBtn = document.getElementById('decreaseSize');
     var increaseBtn = document.getElementById('increaseSize');
     var sizeDisplay = document.getElementById('currentSize');
-    var progressBar = document.getElementById('progressBar');
-
     if (!body || !toggle) return;
 
     var fontSize = parseInt(localStorage.getItem('font-size') || '20');
@@ -867,21 +1086,39 @@ function buildEndnotes(): string {
       footnotesBtn.addEventListener('click', function() { applyFootnotes(!footnotesShown); });
     }
 
-    if (progressBar) {
-      var ticking = false;
-      function updateProgress() {
-        var scrollTop = window.scrollY;
-        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        if (docHeight > 0) {
-          progressBar.style.width = Math.min(100, (scrollTop / docHeight) * 100) + '%';
-        }
-        ticking = false;
-      }
-      window.addEventListener('scroll', function() {
-        if (!ticking) { requestAnimationFrame(updateProgress); ticking = true; }
-      }, { passive: true });
-      updateProgress();
+    // Progress bar + auto-hide controls
+    var controlsEl = document.getElementById('readingControls');
+    var lastY = window.scrollY;
+    var idleTimer = null;
+    function showControls() {
+      if (controlsEl) controlsEl.classList.remove('controls--hidden');
     }
+    function hideControls() {
+      if (controlsEl && !panel.classList.contains('open')) {
+        controlsEl.classList.add('controls--hidden');
+      }
+    }
+    var ticking = false;
+    function onScroll() {
+      var scrollTop = window.scrollY;
+      // Fade chrome once the reader is into the text
+      document.body.classList.toggle('is-reading', scrollTop > 280);
+      if (controlsEl) {
+        if (scrollTop > lastY + 4 && scrollTop > 120) {
+          hideControls();
+        } else if (scrollTop < lastY - 4) {
+          showControls();
+        }
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(showControls, 1200);
+      }
+      lastY = scrollTop;
+      ticking = false;
+    }
+    window.addEventListener('scroll', function() {
+      if (!ticking) { requestAnimationFrame(onScroll); ticking = true; }
+    }, { passive: true });
+    onScroll();
 
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
